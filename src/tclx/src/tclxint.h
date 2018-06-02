@@ -67,7 +67,14 @@
 #    include <sys/times.h>
 #endif 
 
+#ifdef __CYGWIN__
+/* VALUES.H is bad mkay? */
+#include <limits.h>
+#include <float.h>
+#define MAXDOUBLE DBL_MAX
+#else
 #include <values.h>
+#endif
 #include <grp.h>
 /*
  * On some systems this is not included by tclUnix.h.
