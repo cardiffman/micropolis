@@ -530,7 +530,7 @@ Tcl_SignalId(sig)
 #ifdef SIGKILL
 	case SIGKILL: return "SIGKILL";
 #endif
-#if defined(SIGLOST) && (!defined(SIGIOT) || (SIGLOST != SIGIOT))
+#if defined(SIGLOST) && (!defined(SIGIOT) || (SIGLOST != SIGIOT)) && (!defined(SIGPWR) || (SIGLOST != SIGPWR))
 	case SIGLOST: return "SIGLOST";
 #endif
 #ifdef SIGPIPE
@@ -662,7 +662,7 @@ Tcl_SignalMsg(sig)
 #ifdef SIGKILL
 	case SIGKILL: return "kill signal";
 #endif
-#if defined(SIGLOST) && (!defined(SIGIOT) || (SIGLOST != SIGIOT))
+#if defined(SIGLOST) && (!defined(SIGIOT) || (SIGLOST != SIGIOT))  && (!defined(SIGPWR) || (SIGLOST != SIGPWR))
 	case SIGLOST: return "resource lost";
 #endif
 #ifdef SIGPIPE
