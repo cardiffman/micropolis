@@ -178,7 +178,15 @@ Tk_ParseArgv(interp, tkwin, argcPtr, argv, argTable, flags)
 	infoPtr = matchPtr;
 	switch (infoPtr->type) {
 	    case TK_ARGV_CONSTANT:
+#ifdef SUPER_DUMB
+	    /* Let me get this straight:
+	     You're converting a pointer to an INT.
+	     Then you're converting a char* to an int* to give the lvalue where
+	     the INT will be stored. */
 		*((int *) infoPtr->dst) = (int) infoPtr->src;
+#else
+		infoPtr->dst = infoPtr->src;
+#endif
 		break;
 	    case TK_ARGV_INT:
 		if (argc == 0) {
