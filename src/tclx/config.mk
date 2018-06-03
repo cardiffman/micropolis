@@ -178,7 +178,7 @@ TCL_TCLDIR=/usr/local/lib/tcl
 # Set to 1 to install manual files, to 0 to not install manual files.
 #
 
-TCL_MAN_INSTALL=1
+TCL_MAN_INSTALL=0
 
 #
 # o TCL_MAN_BASEDIR - Base manual directory where all of the man.* and cat.*
