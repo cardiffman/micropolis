@@ -59,7 +59,33 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "s_fileio.h"
+#include "s_alloc.h"
+#include "s_msg.h"
+#include "s_sim.h"
+#include "s_init.h"
+#include "w_budget.h"
+#include "w_stubs.h"
+#include "w_graph.h"
+#include "w_tk.h"
+#include "w_update.h"
+#include "w_util.h"
+#include "w_resrc.h"
 #include "sim.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <tcl.h>
+#include <sys/time.h>
+
+void DidLoadCity(void);
+void DidntLoadCity(char *msg);
+void DidntSaveCity(char *msg);
+void DidSaveCity(void);
+void DoSaveCityAs(void);
+void DidLoadScenario(void);
 
 
 #if defined(MSDOS) || defined(OSF1) || defined(IS_INTEL)
@@ -181,7 +207,7 @@ _load_file(char *filename, char *dir)
 {
   FILE *f;
   char path[512];
-  QUAD size;
+  int32_t size;
 
 #ifdef MSDOS
   if (dir != NULL) {
@@ -249,11 +275,11 @@ int loadFile(char *filename)
   /* total funds is being put in the 50th & 51th word of MiscHis */
   /* find the address, cast the ptr to a lontPtr, take contents */
 
-  l = *(QUAD *)(MiscHis + 50);
+  l = *(int32_t *)(MiscHis + 50);
   HALF_SWAP_LONGS(&l, 1);
   SetFunds(l);
 
-  l = *(QUAD *)(MiscHis + 8);
+  l = *(int32_t *)(MiscHis + 8);
   HALF_SWAP_LONGS(&l, 1);
   CityTime = l;
 
@@ -269,21 +295,21 @@ int loadFile(char *filename)
 
   /* yayaya */
 
-  l = *(QUAD *)(MiscHis + 58);
+  l = *(int32_t *)(MiscHis + 58);
   HALF_SWAP_LONGS(&l, 1);
   policePercent = l / 65536.0;
 
-  l = *(QUAD *)(MiscHis + 60);
+  l = *(int32_t *)(MiscHis + 60);
   HALF_SWAP_LONGS(&l, 1);
   firePercent = l / 65536.0;
 
-  l = *(QUAD *)(MiscHis + 62);
+  l = *(int32_t *)(MiscHis + 62);
   HALF_SWAP_LONGS(&l, 1);
   roadPercent = l / 65536.0;
 
-  policePercent = (*(QUAD*)(MiscHis + 58)) / 65536.0;	/* and 59 */
-  firePercent = (*(QUAD*)(MiscHis + 60)) / 65536.0;	/* and 61 */
-  roadPercent =(*(QUAD*)(MiscHis + 62)) / 65536.0;	/* and 63 */
+  policePercent = (*(int32_t*)(MiscHis + 58)) / 65536.0;	/* and 59 */
+  firePercent = (*(int32_t*)(MiscHis + 60)) / 65536.0;	/* and 61 */
+  roadPercent =(*(int32_t*)(MiscHis + 62)) / 65536.0;	/* and 63 */
 
   if (CityTime < 0)
     CityTime = 0;
@@ -330,11 +356,11 @@ int saveFile(char *filename)
 
   l = TotalFunds;
   HALF_SWAP_LONGS(&l, 1);
-  (*(QUAD *)(MiscHis + 50)) = l;
+  (*(int32_t *)(MiscHis + 50)) = l;
 
   l = CityTime;
   HALF_SWAP_LONGS(&l, 1);
-  (*(QUAD *)(MiscHis + 8)) = l;
+  (*(int32_t *)(MiscHis + 8)) = l;
 
   MiscHis[52] = autoBulldoze;	/* flag for autoBulldoze */
   MiscHis[53] = autoBudget;	/* flag for autoBudget */
@@ -347,15 +373,15 @@ int saveFile(char *filename)
 
   l = (int)(policePercent * 65536);
   HALF_SWAP_LONGS(&l, 1);
-  (*(QUAD *)(MiscHis + 58)) = l;
+  (*(int32_t *)(MiscHis + 58)) = l;
 
   l = (int)(firePercent * 65536);
   HALF_SWAP_LONGS(&l, 1);
-  (*(QUAD *)(MiscHis + 60)) = l;
+  (*(int32_t *)(MiscHis + 60)) = l;
 
   l = (int)(roadPercent * 65536);
   HALF_SWAP_LONGS(&l, 1);
-  (*(QUAD *)(MiscHis + 62)) = l;
+  (*(int32_t *)(MiscHis + 62)) = l;
 
   if ((_save_short(ResHis, HISTLEN / 2, f) == 0) ||
       (_save_short(ComHis, HISTLEN / 2, f) == 0) ||
@@ -376,7 +402,7 @@ int saveFile(char *filename)
 }
 
 
-LoadScenario(short s)
+void LoadScenario(short s)
 {
   char *name, *fname;
 
@@ -471,7 +497,7 @@ LoadScenario(short s)
 }
 
 
-DidLoadScenario()
+void DidLoadScenario(void)
 {
   Eval("UIDidLoadScenario");
 }
@@ -488,12 +514,12 @@ int LoadCity(char *filename)
     CityFileName = (char *)ckalloc(strlen(filename) + 1);
     strcpy(CityFileName, filename);
 
-    if (cp = (char *)rindex(filename, '.'))
+    if ((cp = (char *)rindex(filename, '.')))
       *cp = 0;
 #ifdef MSDOS
     if (cp = (char *)rindex(filename, '\\'))
 #else
-    if (cp = (char *)rindex(filename, '/'))
+    if ((cp = (char *)rindex(filename, '/')))
 #endif
       cp++;
     else
@@ -517,13 +543,13 @@ int LoadCity(char *filename)
 }
 
 
-DidLoadCity()
+void DidLoadCity(void)
 {
   Eval("UIDidLoadCity");
 }
 
 
-DidntLoadCity(char *msg)
+void DidntLoadCity(char *msg)
 {
   char buf[1024];
   sprintf(buf, "UIDidntLoadCity {%s}", msg);
@@ -531,7 +557,7 @@ DidntLoadCity(char *msg)
 }
 
 
-SaveCity()
+void SaveCity(void)
 {
   char msg[256];
 
@@ -550,19 +576,19 @@ SaveCity()
 }
 
 
-DoSaveCityAs()
+void DoSaveCityAs(void)
 {
   Eval("UISaveCityAs");
 }
 
 
-DidSaveCity()
+void DidSaveCity(void)
 {
   Eval("UIDidSaveCity");
 }
 
 
-DidntSaveCity(char *msg)
+void DidntSaveCity(char *msg)
 {
   char buf[1024];
   sprintf(buf, "UIDidntSaveCity {%s}", msg);
@@ -570,7 +596,7 @@ DidntSaveCity(char *msg)
 }
 
 
-SaveCityAs(char *filename)
+void SaveCityAs(char *filename)
 {
   char msg[256];
   char *cp;
@@ -581,12 +607,12 @@ SaveCityAs(char *filename)
   strcpy(CityFileName, filename);
 
   if (saveFile(CityFileName)) {
-    if (cp = (char *)rindex(filename, '.'))
+    if ((cp = (char *)rindex(filename, '.')))
       *cp = 0;
 #ifdef MSDOS
     if (cp = (char *)rindex(filename, '\\'))
 #else
-    if (cp = (char *)rindex(filename, '/'))
+    if ((cp = (char *)rindex(filename, '/')))
 #endif
       cp++;
     else

@@ -59,8 +59,18 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_x.h"
+#include "w_tk.h"
+#include "w_graph.h"
+#include "w_stubs.h"
+#include "g_setup.h"
+#include "s_sim.h"
 #include "sim.h"
-
+#include "view.h"
+#include "tk.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <assert.h>
 
 struct XDisplay *XDisplays = NULL;
 int DisplayCount = 0;
@@ -91,8 +101,14 @@ unsigned char ColorIntensities[] = {
 	/* COLOR_BLACK */		0,
 };
 
+void AllocTiles(SimView *view);
+void FreeTiles(SimView *view);
+void DoAdjustPan(struct SimView *view);
+void DoPanTo(struct SimView *view, int x, int y);
+void DoResizeView(SimView *view, int w, int h);
+void DestroyView(SimView *view);
 
-ViewToTileCoords(SimView *view, int x, int y, int *outx, int *outy)
+void ViewToTileCoords(SimView *view, int x, int y, int *outx, int *outy)
 {
   x = (view->pan_x - ((view->w_width >>1) - x)) >>4;
   y = (view->pan_y - ((view->w_height >>1) - y)) >>4;
@@ -120,7 +136,7 @@ ViewToTileCoords(SimView *view, int x, int y, int *outx, int *outy)
 }
 
 
-ViewToPixelCoords(SimView *view, int x, int y, int *outx, int *outy)
+void ViewToPixelCoords(SimView *view, int x, int y, int *outx, int *outy)
 {
   x = view->pan_x - ((view->w_width >>1) - x);
   y = view->pan_y - ((view->w_height >>1) - y);
@@ -148,7 +164,7 @@ ViewToPixelCoords(SimView *view, int x, int y, int *outx, int *outy)
 }
 
 
-UpdateFlush()
+void UpdateFlush(void)
 {
   struct XDisplay *xd;
 
@@ -215,8 +231,8 @@ printf("GOT X ERROR code %d request code %d %d\n",
   return (0);
 }
 
-
-DoStopMicropolis()
+void
+DoStopMicropolis(void)
 {
   (void)XSetErrorHandler(CatchXError);
 
@@ -244,14 +260,14 @@ DoStopMicropolis()
 }
 
 
-DoTimeoutListen()
+void DoTimeoutListen(void)
 {
   while (Tk_DoOneEvent(TK_DONT_WAIT)) ;
 }
 
 
 Sim *
-MakeNewSim()
+MakeNewSim(void)
 {
   Sim *sim;
 
@@ -416,7 +432,7 @@ FindXDisplay(Tk_Window tkwin)
 		       1, LineSolid, CapButt, JoinMiter);
     XSetGraphicsExposures(xd->dpy, xd->gc, False);
 
-#ifndef MSDOS
+#if !defined(MSDOS) && defined(USE_X11)
     { int major, minor, event, error, pixmaps;
       if (WireMode ||
 	  (XQueryExtension(xd->dpy, "MIT-SHM", /* Jeez! */
@@ -470,13 +486,13 @@ FindXDisplay(Tk_Window tkwin)
 }
 
 
-IncRefDisplay(XDisplay *xd)
+void IncRefDisplay(XDisplay *xd)
 {
   xd->references++;
 }
 
 
-DecRefDisplay(XDisplay *xd)
+void DecRefDisplay(XDisplay *xd)
 {
   if ((--xd->references) == 0) {
     /* I'd blow it away, but tk may still be using the display */
@@ -547,7 +563,9 @@ InitNewView(SimView *view, char *title, int class, int w, int h)
 /*  view->flags = 0; */
 
   view->x = NULL;
+#ifdef USE_X11
   view->shminfo = NULL;
+#endif
   view->tiles = NULL;
   view->other_tiles = NULL;
   view->image = NULL;
@@ -597,7 +615,7 @@ InitNewView(SimView *view, char *title, int class, int w, int h)
 }
 
 
-DestroyView(SimView *view)
+void DestroyView(SimView *view)
 {
   SimView **vp;
 
@@ -644,6 +662,7 @@ DestroyView(SimView *view)
   }
 
 #ifndef MSDOS
+#ifdef USE_X11
   if (view->shminfo) {
     XShmDetach(view->x->dpy, view->shminfo);
     shmdt(view->shminfo->shmaddr);
@@ -656,7 +675,10 @@ DestroyView(SimView *view)
       XDestroyImage(view->image);
       view->image = NULL;
     }
-  } else {
+  }
+  else
+#endif
+  {
 #endif
     if (view->image) {
       if (view->image->data) {
@@ -705,7 +727,7 @@ AllocPixels(int len, unsigned char pixel)
 }
 
 
-DoResizeView(SimView *view, int w, int h)
+void DoResizeView(SimView *view, int w, int h)
 {
   int resize = 0;
 
@@ -791,6 +813,7 @@ DoResizeView(SimView *view, int w, int h)
   }
 
   if (resize || (view->image == NULL)) {
+#ifdef USE_X11
     if (view->shminfo && view->image) {
       if (view->pixmap != None) {
 	XFreePixmap(view->x->dpy, view->pixmap);
@@ -806,6 +829,7 @@ DoResizeView(SimView *view, int w, int h)
       XDestroyImage(view->image);
       view->image = NULL;
     }
+#endif
 
 #if 0
     /* XShmPixmapFormat is documented but does not exist !!! */
@@ -817,15 +841,19 @@ DoResizeView(SimView *view, int w, int h)
     }
 #endif
 
+#ifdef USE_X11
     if (!view->shminfo) {
       view->shminfo = (XShmSegmentInfo *)ckalloc(sizeof (XShmSegmentInfo));
     }
+#endif
 
+#ifdef USE_X11
     view->image =
       XShmCreateImage(view->x->dpy, view->x->visual, view->x->depth,
 		      view->x->color ? ZPixmap : XYBitmap,
 		      NULL, view->shminfo,
 		      view->m_width, view->m_height);
+#endif
 
     view->line_bytes = view->image->bytes_per_line;
 
@@ -871,6 +899,7 @@ DoResizeView(SimView *view, int w, int h)
 
     } // switch
 
+#ifdef USE_X11
     view->shminfo->shmid = shmget(IPC_PRIVATE,
 				  (view->line_bytes *
 				   view->m_height),
@@ -961,6 +990,7 @@ DoResizeView(SimView *view, int w, int h)
       XFillRectangle(view->x->dpy, view->pixmap, view->x->gc,
 		     0, 0, view->m_width, view->m_height);
     }
+#endif
   }
 
   goto FINISH;
@@ -971,7 +1001,6 @@ DoResizeView(SimView *view, int w, int h)
 	  "Falling back to the X network protocol on display \"%s\"...\n",
 	  view->x->display);
 #endif
-
   view->x->shared = 0;
   view->type = X_Wire_View;
   if (view->pixmap != None) {
@@ -979,6 +1008,7 @@ DoResizeView(SimView *view, int w, int h)
     view->pixmap = None;
   }
 #ifndef MSDOS
+#ifdef USE_X11
   if (view->shminfo) {
     if (view->shminfo->shmid >= 0) {
       if (view->shminfo->shmaddr) {
@@ -989,6 +1019,7 @@ DoResizeView(SimView *view, int w, int h)
     ckfree((char *)view->shminfo);
     view->shminfo = NULL;
   }
+#endif
 #endif
   if (view->image) {
     view->image->data = NULL;
@@ -1227,13 +1258,13 @@ DoResizeView(SimView *view, int w, int h)
 }
 
 
-DoPanBy(struct SimView *view, int dx, int dy)
+void DoPanBy(struct SimView *view, int dx, int dy)
 {
   DoPanTo(view, view->pan_x + dx, view->pan_y + dy);
 }
 
 
-DoPanTo(struct SimView *view, int x, int y)
+void DoPanTo(struct SimView *view, int x, int y)
 {
   if (view->class != Editor_Class) {
     return;
@@ -1253,7 +1284,7 @@ DoPanTo(struct SimView *view, int x, int y)
 
 /* #define DEBUG_PAN */
 
-DoAdjustPan(struct SimView *view)
+void DoAdjustPan(struct SimView *view)
 {
   int ww2 = view->w_width >>1, wh2 = view->w_height >>1;
   int px = view->pan_x, py = view->pan_y;
@@ -1371,7 +1402,7 @@ DoAdjustPan(struct SimView *view)
 }
 
 
-AllocTiles(SimView *view)
+void AllocTiles(SimView *view)
 {
   int row, col;
   short **have, **want;
@@ -1402,7 +1433,7 @@ AllocTiles(SimView *view)
 }
 
 
-FreeTiles(SimView *view)
+void FreeTiles(SimView *view)
 {
   int col;
 
@@ -1425,7 +1456,7 @@ Ink *OldInk = NULL;
 /* XXX: todo: ink locking so someone doesn't erase ink that's being drawn */
 
 Ink *
-NewInk()
+NewInk(void)
 {
   Ink *ink;
 
@@ -1446,14 +1477,14 @@ NewInk()
 }
 
 
-FreeInk(Ink *ink)
+void FreeInk(Ink *ink)
 {
   ink->next = OldInk;
   OldInk = ink;
 }
 
 
-StartInk(Ink *ink, int x, int y)
+void StartInk(Ink *ink, int x, int y)
 {
   ink->length = 1;
   ink->left = ink->right = ink->last_x = ink->points[0].x = x;
@@ -1461,7 +1492,7 @@ StartInk(Ink *ink, int x, int y)
 }
 
 
-AddInk(Ink *ink, int x, int y)
+void AddInk(Ink *ink, int x, int y)
 {
   int dx = x - ink->last_x;
   int dy = y - ink->last_y;
@@ -1532,7 +1563,7 @@ AddInk(Ink *ink, int x, int y)
 }
 
 
-EraseOverlay()
+void EraseOverlay(void)
 {
   Ink *ink;
 

@@ -59,14 +59,26 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "s_init.h"
+#include "s_sim.h"
+#include "w_graph.h"
+#include "s_alloc.h"
+#include "s_eval.h"
+#include "w_update.h"
+#include "w_tool.h"
+#include "w_stubs.h"
+#include "w_tk.h"
+#include "w_sprite.h"
+#include "w_keys.h"
+#include "w_util.h"
 #include "sim.h"
-
-
+#include "view.h"
+#include <stddef.h>
 /* Initialize Stuff */
 
 
 /* comefrom: loadFile bootUp main doMessage */
-InitWillStuff()
+void InitWillStuff(void)
 {
   register short x, y, z;
 
@@ -131,7 +143,7 @@ InitWillStuff()
 }
 
 
-ResetMapState()
+void ResetMapState(void)
 {
   SimView *view;
 
@@ -141,7 +153,7 @@ ResetMapState()
 }
 
 
-ResetEditorState()
+void ResetEditorState(void)
 {
   SimView *view;
 

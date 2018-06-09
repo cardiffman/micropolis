@@ -1514,6 +1514,7 @@ Tk_DoOneEvent(flags)
 	goto checkTime;
     }
     goto checkFiles;
+    return 0;
 }
 
 /*

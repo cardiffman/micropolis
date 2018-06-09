@@ -59,24 +59,42 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_update.h"
+#include "w_graph.h"
+#include "w_eval.h"
+#include "w_sound.h"
+#include "w_stubs.h"
+#include "w_util.h"
+#include "w_tk.h"
+#include "s_alloc.h"
+#include "s_msg.h"
+#include "s_sim.h"
 #include "sim.h"
-
+#include <stdio.h>
 
 short MustUpdateFunds;
 short MustUpdateOptions;
-QUAD LastCityTime;
-QUAD LastCityYear;
-QUAD LastCityMonth;
-QUAD LastFunds;
-QUAD LastR, LastC, LastI;
+uint8_t LastCityTime;
+uint8_t LastCityYear;
+uint8_t LastCityMonth;
+uint8_t LastFunds;
+int32_t LastR, LastC, LastI;
 
 char *dateStr[12] = {
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
+void showValves(void);
+void ReallyUpdateFunds(void);
+void updateOptions(void);
+void UpdateOptionsMenu(int options);
+void SetDemand(double r, double c, double i);
+void drawValve(void);
+void updateDate(void);
+void UpdateFunds(void);
 
-void DoUpdateHeads()
+void DoUpdateHeads(void)
 {
   showValves();
   doTimeStuff();
@@ -92,7 +110,7 @@ void UpdateEditors()
 }
 
 
-void UpdateMaps()
+void UpdateMaps(void)
 {
   InvalidateMaps();
 }
@@ -110,21 +128,21 @@ void UpdateEvaluation()
 }
 
 
-void UpdateHeads()
+void UpdateHeads(void)
 {
   MustUpdateFunds = ValveFlag = 1;
   LastCityTime = LastCityYear = LastCityMonth = LastFunds = LastR = -999999;
   DoUpdateHeads();
 }
 
-UpdateFunds(void)
+void UpdateFunds(void)
 {
   MustUpdateFunds = 1;
 //  Kick();
 }
 
 
-ReallyUpdateFunds(void)
+void ReallyUpdateFunds(void)
 {
   char localStr[256], dollarStr[256], buf[256];
 
@@ -147,7 +165,7 @@ ReallyUpdateFunds(void)
 }
 
 
-doTimeStuff(void) 
+void doTimeStuff(void)
 {
 //  if ((CityTime >> 2) != LastCityTime) {
     updateDate();
@@ -155,7 +173,7 @@ doTimeStuff(void)
 }
 
 
-updateDate(void)
+void updateDate(void)
 {	
   int y;
   int m;
@@ -191,7 +209,7 @@ updateDate(void)
 }
 
 
-showValves(void)
+void showValves(void)
 {
   if (ValveFlag) {
     drawValve();
@@ -200,7 +218,7 @@ showValves(void)
 }
 
 
-drawValve(void)
+void drawValve(void)
 {
   double r, c, i;
 
@@ -227,7 +245,7 @@ drawValve(void)
 }
 
 
-SetDemand(double r, double c, double i)
+void SetDemand(double r, double c, double i)
 {
   char buf[256];
 
@@ -237,7 +255,7 @@ SetDemand(double r, double c, double i)
 }
 
 
-updateOptions()
+void updateOptions(void)
 {
   int options;
 
@@ -258,7 +276,7 @@ updateOptions()
 }
 
 
-UpdateOptionsMenu(int options)
+void UpdateOptionsMenu(int options)
 {
   char buf[256];
   sprintf(buf, "UISetOptions %d %d %d %d %d %d %d %d",

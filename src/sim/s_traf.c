@@ -59,7 +59,15 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "s_traf.h"
+#include "s_alloc.h"
+#include "w_sprite.h"
+#include "s_sim.h"
+#include "s_power.h"
 #include "sim.h"
+#include "view.h"
+#include "macros.h"
+#include <stddef.h>
 
 
 /* Traffic Generation */
@@ -72,9 +80,21 @@ short LDir;
 short Zsource;
 short TrafMaxX, TrafMaxY;
 
+int DriveDone(void);
+int FindPRoad(void);		/* look for road on edges of zone   */
+int FindPTele(void);		/* look for telecommunication on edges of zone */
+int GetFromMap(int x);
+void PullPos(void);
+void PushPos(void);
+int RoadTest(int x);
+void SetTrafMem(void);
+int TryDrive(void);
+int TryGo(int z);
+
+
 
 /* comefrom: DoIndustrial DoCommercial DoResidential */
-MakeTraf(int Zt)
+int MakeTraf(int Zt)
 {
   short xtem, ytem;
 
@@ -106,7 +126,7 @@ MakeTraf(int Zt)
 
 
 /* comefrom: MakeTraf */
-SetTrafMem(void)
+void SetTrafMem(void)
 {
   register short x, z;
 
@@ -139,7 +159,7 @@ SetTrafMem(void)
 
 
 /* comefrom: TryGo */
-PushPos(void)
+void PushPos(void)
 {
   PosStackN++;
   SMapXStack[PosStackN] = SMapX;
@@ -148,7 +168,7 @@ PushPos(void)
 
 
 /* comefrom: SetTrafMem */
-PullPos(void)
+void PullPos(void)
 {
   SMapX = SMapXStack[PosStackN];
   SMapY = SMapYStack[PosStackN];
@@ -157,7 +177,7 @@ PullPos(void)
 
 
 /* comefrom: DoSPZone MakeTraf */
-FindPRoad(void)		/* look for road on edges of zone   */
+int FindPRoad(void)		/* look for road on edges of zone   */
 {
   static short PerimX[12] = {-1, 0, 1, 2, 2, 2, 1, 0,-1,-2,-2,-2};
   static short PerimY[12] = {-2,-2,-2,-1, 0, 1, 2, 2, 2, 1, 0,-1};
@@ -178,7 +198,7 @@ FindPRoad(void)		/* look for road on edges of zone   */
 }
 
 
-FindPTele(void)		/* look for telecommunication on edges of zone */
+int FindPTele(void)		/* look for telecommunication on edges of zone */
 {
   static short PerimX[12] = {-1, 0, 1, 2, 2, 2, 1, 0,-1,-2,-2,-2};
   static short PerimY[12] = {-2,-2,-2,-1, 0, 1, 2, 2, 2, 1, 0,-1};
@@ -199,7 +219,7 @@ FindPTele(void)		/* look for telecommunication on edges of zone */
 
 
 /* comefrom: MakeTraf */
-TryDrive(void)
+int TryDrive(void)
 {
   short z;
 
@@ -221,7 +241,7 @@ TryDrive(void)
 
 
 /* comefrom: TryDrive */
-TryGo(int z)
+int TryGo(int z)
 {
   short x, rdir, realdir;
 
@@ -246,7 +266,7 @@ TryGo(int z)
 
 
 /* comefrom: TryGo DriveDone */
-GetFromMap(int x)
+int GetFromMap(int x)
 {
   switch (x) {
   case 0:
@@ -272,7 +292,7 @@ GetFromMap(int x)
 
 
 /* comefrom: TryDrive */
-DriveDone(void)
+int DriveDone(void)
 {
   static short TARGL[3] = {COMBASE, LHTHR, LHTHR};
   static short TARGH[3] = {NUCLEAR, PORT, COMBASE};	/* for destinations */
@@ -316,7 +336,7 @@ DriveDone(void)
 
 
 /* comefrom: TryGo FindPRoad */
-RoadTest(int x)
+int RoadTest(int x)
 {
   x = x & LOMASK;
   if (x < ROADBASE)

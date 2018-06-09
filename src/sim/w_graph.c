@@ -59,8 +59,16 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_graph.h"
+#include "s_alloc.h"
+#include "w_x.h"
+#include "w_tk.h"
 #include "sim.h"
-
+#include "view.h"
+#include "macros.h"
+#include <tk.h>
+#include <stdio.h>
+#include <assert.h>
 
 short NewGraph = 0;
 short AllMax;
@@ -97,6 +105,13 @@ Tk_ConfigSpec GraphConfigSpecs[] = {
 
 
 XDisplay *FindXDisplay();
+int ConfigureSimGraph(Tcl_Interp *interp, SimGraph *graph, int argc, char **argv, int flags);
+void DestroyGraph(SimGraph *graph);
+void DoNewGraph(SimGraph *graph);
+void DoUpdateGraph(SimGraph *graph);
+void DoResizeGraph(SimGraph *graph, int w, int h);
+void EventuallyRedrawGraph(SimGraph *graph);
+void InitNewGraph(SimGraph *graph);
 
 
 static void
@@ -133,7 +148,7 @@ DestroySimGraph(ClientData clientData)
 }
 
 
-EventuallyRedrawGraph(SimGraph *graph)
+void EventuallyRedrawGraph(SimGraph *graph)
 {
   if (!(graph->flags & VIEW_REDRAW_PENDING)) {
     assert(graph->draw_graph_token == 0);
@@ -189,7 +204,7 @@ SimGraphEventProc(ClientData clientData, XEvent *eventPtr)
 }
 
 
-int GraphCmdconfigure(GRAPH_ARGS)
+int GraphCmdconfigure(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -207,7 +222,7 @@ int GraphCmdconfigure(GRAPH_ARGS)
 }
 
 
-int GraphCmdposition(GRAPH_ARGS)
+int GraphCmdposition(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -225,7 +240,7 @@ int GraphCmdposition(GRAPH_ARGS)
 }
 
 
-int GraphCmdsize(GRAPH_ARGS)
+int GraphCmdsize(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -247,7 +262,7 @@ int GraphCmdsize(GRAPH_ARGS)
 }
 
 
-int GraphCmdVisible(GRAPH_ARGS)
+int GraphCmdVisible(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   int visible;
 
@@ -272,7 +287,7 @@ int GraphCmdVisible(GRAPH_ARGS)
 }
 
 
-int GraphCmdRange(GRAPH_ARGS)
+int GraphCmdRange(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   int range;
 
@@ -298,7 +313,7 @@ int GraphCmdRange(GRAPH_ARGS)
 }
 
 
-int GraphCmdMask(GRAPH_ARGS)
+int GraphCmdMask(SimGraph *graph, Tcl_Interp *interp, int argc, char **argv)
 {
   int mask;
 
@@ -325,7 +340,7 @@ int GraphCmdMask(GRAPH_ARGS)
 
 
 int
-DoGraphCmd(CLIENT_ARGS)
+DoGraphCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimGraph *graph = (SimGraph *) clientData;
   Tcl_HashEntry *ent;
@@ -336,7 +351,7 @@ DoGraphCmd(CLIENT_ARGS)
     return TCL_ERROR;
   }
 
-  if (ent = Tcl_FindHashEntry(&GraphCmds, argv[1])) {
+  if ((ent = Tcl_FindHashEntry(&GraphCmds, argv[1]))) {
     cmd = (int (*)())ent->clientData;
     Tk_Preserve((ClientData) graph);
     result = cmd(graph, interp, argc, argv);
@@ -351,7 +366,7 @@ DoGraphCmd(CLIENT_ARGS)
 
 
 int
-GraphViewCmd(CLIENT_ARGS)
+GraphViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimGraph *graph;
   Tk_Window tkwin = (Tk_Window) clientData;
@@ -434,7 +449,7 @@ unsigned char HistColor[] = {
 };
 
 
-graph_command_init()
+void graph_command_init(void)
 {
   int new;
 
@@ -568,9 +583,9 @@ initGraphs(void)
 
 
 /* comefrom: InitWillStuff */
-InitGraphMax(void)
+void InitGraphMax(void)
 {
-  register x;
+  register int x;
 
   ResHisMax = 0;
   ComHisMax = 0;
@@ -604,7 +619,7 @@ InitGraphMax(void)
 }
 
 
-InitNewGraph(SimGraph *graph)
+void InitNewGraph(SimGraph *graph)
 {
   int d = 8;
   struct XDisplay *xd;
@@ -641,7 +656,7 @@ InitNewGraph(SimGraph *graph)
 }
 
 
-DestroyGraph(SimGraph *graph)
+void DestroyGraph(SimGraph *graph)
 {
   SimGraph **gp;
 
@@ -666,7 +681,7 @@ DestroyGraph(SimGraph *graph)
 }
 
 
-DoResizeGraph(SimGraph *graph, int w, int h)
+void DoResizeGraph(SimGraph *graph, int w, int h)
 {
   int resize = 0;
 
@@ -688,7 +703,7 @@ DoResizeGraph(SimGraph *graph, int w, int h)
 }
 
 
-DoNewGraph(SimGraph *graph)
+void DoNewGraph(SimGraph *graph)
 {
   sim->graphs++; graph->next = sim->graph; sim->graph = graph;
 
@@ -698,7 +713,7 @@ DoNewGraph(SimGraph *graph)
 
 #define BORDER 5
 
-DoUpdateGraph(SimGraph *graph)
+void DoUpdateGraph(SimGraph *graph)
 {
   Display *dpy;
   GC gc;

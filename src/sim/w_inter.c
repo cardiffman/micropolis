@@ -295,6 +295,8 @@ static void		TrackInterval _ANSI_ARGS_((Interval *intervalPtr,
 static void		StartTrackInterval _ANSI_ARGS_((Interval *intervalPtr,
 			    int value));
 static int		ValueToPixel _ANSI_ARGS_((Interval *intervalPtr, int value));
+void NotifyInterval(Interval *intervalPtr);
+
 
 /*
  *--------------------------------------------------------------
@@ -1548,8 +1550,7 @@ SetInterval(intervalPtr, min, max, notify)
 }
 
 
-NotifyInterval(intervalPtr)
-    register Interval *intervalPtr;	/* Info about widget. */
+void NotifyInterval(Interval *intervalPtr)
 {
     int result;
     char string[256];

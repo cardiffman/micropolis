@@ -59,7 +59,10 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_con.h"
+#include "w_stubs.h"
 #include "sim.h"
+#include "macros.h"
 
 
 short _RoadTable[16] = {
@@ -90,6 +93,16 @@ short _WireTable[16] = {
     Tile = (Tile & 0x000F) + 64; \
   }
 
+void _FixSingle(int x, int y, short *TileAdrPtr);
+void _FixZone(int x, int y, short *TileAdrPtr);
+int
+_LayDoze(int x, int y, short *TileAdrPtr);
+int
+_LayRoad(int x, int y, short *TileAdrPtr);
+int
+_LayRail(int x, int y, short *TileAdrPtr);
+int
+_LayWire(int x, int y, short *TileAdrPtr);
 
 /* comefrom: check3Border check4Border check5Border processWand */
 int
@@ -494,7 +507,7 @@ _LayWire(int x, int y, short *TileAdrPtr)
 
 
 /* comefrom: ConnecTile */
-_FixZone(int x, int y, short *TileAdrPtr)
+void _FixZone(int x, int y, short *TileAdrPtr)
 {
   _FixSingle(x,y, &TileAdrPtr[0]);
 
@@ -518,7 +531,7 @@ _FixZone(int x, int y, short *TileAdrPtr)
 
 
 /* comefrom: _FixZone */
-_FixSingle(int x, int y, short *TileAdrPtr)
+void _FixSingle(int x, int y, short *TileAdrPtr)
 {
   short Tile;
   short adjTile = 0;

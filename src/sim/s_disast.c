@@ -59,6 +59,16 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "s_disast.h"
+#include "s_sim.h"
+#include "w_stubs.h"
+#include "s_alloc.h"
+#include "w_sprite.h"
+#include "s_msg.h"
+#include "w_tk.h"
+#include "s_scan.h"
+#include "macros.h"
+
 #include "sim.h"
 
 
@@ -69,9 +79,16 @@ short ShakeNow;
 short FloodCnt;
 short FloodX, FloodY;
 
+void ScenarioDisaster(void);
+void SetFire(void);
+void MakeFlood(void);
+//void MakeTornado(void);
+void MakeEarthquake(void);
+void MakeMeltdown(void);
+int Vunerable(int tem);
 
 /* comefrom: Simulate */
-DoDisasters(void)
+void DoDisasters(void)
 { 
   /* Chance of disasters at lev 0 1 2 */
   static short DisChance[3] = { 10*48, 5*48, 60}; 
@@ -114,7 +131,7 @@ DoDisasters(void)
 
 
 /* comefrom: DoDisasters */
-ScenarioDisaster(void)
+void ScenarioDisaster(void)
 {
   int x, y;
 
@@ -147,7 +164,7 @@ ScenarioDisaster(void)
 
 
 /* comefrom: ScenarioDisaster */
-MakeMeltdown(void)
+void MakeMeltdown(void)
 {
   short x, y;
 
@@ -163,7 +180,7 @@ MakeMeltdown(void)
 }
 
 
-FireBomb()
+void FireBomb(void)
 {
   CrashX = Rand(WORLD_X - 1);
   CrashY = Rand(WORLD_Y - 1);
@@ -174,7 +191,7 @@ FireBomb()
 
 
 /* comefrom: DoDisasters ScenarioDisaster */
-MakeEarthquake(void)
+void MakeEarthquake(void)
 {
   register short x, y, z;
   short time;
@@ -201,7 +218,7 @@ MakeEarthquake(void)
 
 
 /* comefrom: DoDisasters */
-SetFire(void)
+void SetFire(void)
 {
   register short x, y, z;
 
@@ -221,7 +238,7 @@ SetFire(void)
 
 
 /* comefrom: DoDisasters */
-MakeFire(void)
+void MakeFire(void)
 {
   short t, x, y, z;
   for (t = 0; t < 40; t++)  {
@@ -242,7 +259,7 @@ MakeFire(void)
 
 
 /* comefrom: MakeEarthquake */
-Vunerable(int tem)
+int Vunerable(int tem)
 {
   register int tem2;
 
@@ -256,7 +273,7 @@ Vunerable(int tem)
 
 
 /* comefrom: DoDisasters ScenarioDisaster */
-MakeFlood(void)
+void MakeFlood(void)
 {
   static short Dx[4] = { 0, 1, 0,-1};
   static short Dy[4] = {-1, 0, 1, 0};
@@ -289,7 +306,7 @@ MakeFlood(void)
 
 
 /* comefrom: MapScan */
-DoFlood(void)
+void DoFlood(void)
 {
   static short Dx[4] = { 0, 1, 0,-1};
   static short Dy[4] = {-1, 0, 1, 0};

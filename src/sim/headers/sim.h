@@ -59,6 +59,8 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#ifndef INCLUDED_SIM_SIM_H
+#define INCLUDED_SIM_SIM_H
 
 /* workaround sun c compiler junk */
 
@@ -86,67 +88,6 @@
 #endif
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <ctype.h>
-#include <setjmp.h>
-#include <malloc.h>
-#include <errno.h>
-#include <signal.h>
-#include <math.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <sys/ioctl.h>
-#include <sys/resource.h>
-#ifndef MSDOS
-#ifndef HPUX
-#include <alloca.h>
-#endif
-#include <sys/mman.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
-
-#ifdef sun
-#ifdef SOLARIS2
-#include <sys/systeminfo.h>
-#else
-#include <sys/vadvise.h>
-#endif
-#endif
-
-#ifdef sgi
-#if 0
-#include <audio.h>
-#endif
-#endif
-
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <X11/extensions/XShm.h>
-
-//#include <xpmtk.h>
-#include <X11/xpm.h>
-
-/* gcc compat workaround! */
-#define _STDDEF_H
-
-#include "tclxtend.h"
-#include "tclint.h"
-#include "tclunix.h"
-#include "tkconfig.h"
-#include "tkint.h"
-
-#include "mac.h"
-#include "view.h"
-#include "macros.h"
 
 /* Constants */
 
@@ -454,18 +395,6 @@
 #define firstState residentialState
 #define lastState networkState
 
-#if 0
-#define specialState 16
-#define monsterGoalState 17
-#define helicopterGoalState 18
-#define blackState 19
-#define whiteState 20
-#define redState 21
-#define orangeState 23
-#define blueState 24
-#define greenState 25
-#define brownState 26
-#endif
 
 
 #define STATE_CMD 0
@@ -474,151 +403,19 @@
 #define STATE_GRAPHS 3
 
 
-extern short *Map[WORLD_X];		/* Main Map 120 x 100  */
-extern Byte *PopDensity[HWLDX];		/* 2X2 Maps  60 x 50 */
-extern Byte *TrfDensity[HWLDX];
-extern Byte *PollutionMem[HWLDX];
-extern Byte *LandValueMem[HWLDX];
-extern Byte *CrimeMem[HWLDX];
-extern Byte *tem[HWLDX];
-extern Byte *tem2[HWLDX];
-extern Byte *TerrainMem[QWX];		/* 4X4 Maps  30 x 25 */
-extern Byte *Qtem[QWX];
-extern short RateOGMem[SmX][SmY];
-extern short FireStMap[SmX][SmY];	/* 8X8 Maps  15 x 13 */
-extern short PoliceMap[SmX][SmY];
-extern short PoliceMapEffect[SmX][SmY];
-extern short ComRate[SmX][SmY];
-extern short FireRate[SmX][SmY];
-extern short STem[SmX][SmY];
-extern short SpriteXOffset[OBJN];
-extern short SpriteYOffset[OBJN];
-extern short SMapX, SMapY;
-extern short CChr, CChr9;
-extern short RoadTotal, RailTotal, FirePop;
-extern short ResPop, ComPop, IndPop, TotalPop, LastTotalPop;
-extern short ResZPop, ComZPop, IndZPop, TotalZPop;
-extern short HospPop, ChurchPop, StadiumPop;
-extern short PolicePop, FireStPop;
-extern short CoalPop, NuclearPop, PortPop, APortPop;
-extern short NeedHosp, NeedChurch;
-extern short CrimeAverage, PolluteAverage, LVAverage;
 extern char *MicropolisVersion;
-extern char *CityName;
 extern char *CityFileName;
 extern char *StartupName;
-extern short StartingYear;
-extern QUAD CityTime;
-extern QUAD LastCityTime;
-extern QUAD LastCityMonth;
-extern QUAD LastCityYear;
-extern QUAD LastFunds;
-extern QUAD LastR, LastC, LastI;
-extern short GameLevel;
-extern short Cycle;
-extern short ScenarioID;
-extern short ShakeNow;
-extern QUAD DonDither;
-extern int DoOverlay;
-
-extern short *ResHis, ResHisMax;
-extern short *ComHis, ComHisMax;
-extern short *IndHis, IndHisMax;
-extern short *MoneyHis, *CrimeHis, *PollutionHis, *MiscHis;
-extern short *PowerMap;
-
-extern float roadPercent, policePercent, firePercent;
-extern QUAD RoadSpend, PoliceSpend, FireSpend;
-extern QUAD roadMaxValue, policeMaxValue, fireMaxValue;
-extern QUAD TaxFund, RoadFund, PoliceFund, FireFund;
-extern short RoadEffect, PoliceEffect, FireEffect;
-extern short TaxFlag, CityTax;
-extern QUAD TotalFunds;
-
-extern QUAD costOf[];
-
-extern short flagBlink;
-extern unsigned char tileSynch;
-extern short aniTile[];
-extern unsigned char aniSynch[];
 extern int TilesAnimated;
 extern int DoAnimation;
 extern int DoMessages;
 extern int DoNotices;
-extern unsigned char ColorIntensities[];
-
-extern short MesX, MesY;
-extern short MesNum, MessagePort;
-extern QUAD LastMesTime;
-
-extern short SimSpeed;
-extern short SimMetaSpeed;
-extern short NoDisasters;
-extern short autoBulldoze;
-extern short autoBudget;
-extern short autoGo;
-extern short UserSoundOn;
-
-extern short DisasterEvent;
-extern short DisasterWait;
-
-extern short ResCap, ComCap, IndCap;
-extern short RValve, CValve, IValve;
-extern short PwrdZCnt;
-extern short unPwrdZCnt;
-
-extern char *HomeDir, *ResourceDir, *HostName;
-
-extern short Graph10Max, Graph120Max;
-extern short Res2HisMax, Com2HisMax, Ind2HisMax;
-extern unsigned char *History10[HISTORIES], *History120[HISTORIES];
-extern short CityScore;
-extern short deltaCityScore;
-extern short ScoreType;
-extern short ScoreWait;
-extern short CityClass;
-extern short PolMaxX, PolMaxY;
-extern int PowerStackNum;
-extern short TrafficAverage;
-extern short PosStackN;
-extern short SMapXStack[], SMapYStack[];
-extern short Zsource;
-extern short HaveLastMessage;
-extern short PdestX, PdestY;
-extern short CdestX, CdestY;
-extern int absDist;
-extern short CopFltCnt;
-extern short GodCnt;
-extern short GdestX, GdestY;
-extern short GorgX, GorgY;
-extern short GodControl;
-extern short CopControl;
-extern short CdestX, CdestY;
-extern short TrafMaxX, TrafMaxY;
-extern short CrimeMaxX, CrimeMaxY;
-extern short FloodX, FloodY;
-extern short CrashX, CrashY;
-extern short CCx, CCy;
-extern QUAD CityPop, deltaCityPop;
-extern char *cityClassStr[6];
-extern short CityYes, CityNo;
-extern short ProblemTable[PROBNUM];
-extern short ProblemVotes[PROBNUM];
-extern short ProblemOrder[4];
-extern QUAD CityAssValue;
-
-extern short InitSimLoad;
-extern short DoInitialEval;
 extern int Startup;
-extern int StartupGameLevel;
-extern int PerformanceTiming;
-extern double FlushTime;
-
-extern char *optarg;
-extern int optind;
 extern struct timeval start_time, now_time, beat_time, last_now_time;
+typedef struct Sim Sim;
 extern Sim *sim;
-extern int WireMode;
+void sim_update_editors(void);
+
 extern int MultiPlayerMode;
 extern int SugarMode;
 extern int sim_delay;
@@ -627,65 +424,15 @@ extern int sim_skip;
 extern int sim_paused;
 extern int sim_paused_speed;
 extern int sim_tty;
-#ifdef CAM
-extern int sim_just_cam;
-#endif
 extern int heat_steps;
 extern int heat_flow;
 extern int heat_rule;
-extern int UpdateDelayed;
-extern int DynamicData[32];
-extern int Players;
-extern int Votes;
-extern int BobHeight;
-extern int OverRide;
-extern int Expensive;
-extern int PendingTool;
-extern int PendingX;
-extern int PendingY;
-extern int TreeLevel;
-extern int LakeLevel;
-extern int CurveLevel;
-extern int CreateIsland;
-extern short specialBase;
-extern short PunishCnt;
-extern short Dozing;
-extern short toolSize[];
-extern short toolOffset[];
-extern QUAD toolColors[];
 extern char *Displays;
 extern char *FirstDisplay;
-extern char *dateStr[12];
+void sim_exit(int val);
+void sim_init(void);
+void sim_really_exit(int val);
+void sim_update();
+void sim_loop(int doSim);
+#endif
 
-extern short NewMap;
-extern short NewMapFlags[NMAPS];
-extern short NewGraph;
-extern short ValveFlag;
-extern short MustUpdateFunds;
-extern short MustUpdateOptions;
-extern short CensusChanged;
-extern short EvalChanged;
-extern short MeltX, MeltY;
-extern int NeedRest;
-extern int ExitReturn;
-
-extern Tcl_Interp *tk_mainInterp;
-extern Tk_Window MainWindow;
-extern int FlushStyle;
-extern int GotXError;
-
-extern short Rand(short range);
-extern short RandInt(void);
-
-extern Sim *MakeNewSim();
-extern SimView *MakeNewView();
-extern SimSprite *GetSprite();
-extern SimSprite *MakeSprite();
-extern SimSprite *MakeNewSprite();
-
-extern int setSpeed(short speed);
-extern int setSkips(int skips);
-extern int SetGameLevel(short level);
-extern int SetGameLevelFunds(short level);
-
-extern struct XDisplay *XDisplays;

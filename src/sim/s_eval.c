@@ -59,8 +59,13 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
+#include "s_eval.h"
+#include "s_alloc.h"
+#include "w_eval.h"
+#include "s_sim.h"
 
+#include "sim.h"
+#include <stdint.h>
 
 /* City Evaluation */
 
@@ -71,15 +76,24 @@ short ProblemTable[PROBNUM];
 short ProblemTaken[PROBNUM];
 short ProblemVotes[PROBNUM];		/* these are the votes for each  */
 short ProblemOrder[4];			/* sorted index to above  */
-QUAD CityPop, deltaCityPop;
-QUAD CityAssValue;
+int32_t CityPop, deltaCityPop;
+int32_t CityAssValue;
 short CityClass;			/*  0..5  */
 short CityScore, deltaCityScore, AverageCityScore;
 short TrafficAverage;
-
+void GetAssValue(void);
+void DoPopNum(void);
+void DoProblems(void);
+void GetScore(void);
+void DoVotes(void);
+void EvalInit(void);
+short AverageTrf(void);
+short GetUnemployment(void);
+short GetFire(void);
+void VoteProblems(void);
 
 /* comefrom: SpecialInit Simulate */
-CityEvaluation(void)
+void CityEvaluation(void)
 {
   EvalValid = 0;
   if (TotalPop) {
@@ -98,7 +112,7 @@ CityEvaluation(void)
 
 
 /* comefrom: CityEvaluation SetCommonInits */
-EvalInit(void)
+void EvalInit(void)
 {
   register short x, z;
 
@@ -120,9 +134,9 @@ EvalInit(void)
 
 
 /* comefrom: CityEvaluation */
-GetAssValue(void)
+void GetAssValue(void)
 {
-  QUAD z;
+  int32_t z;
 
   z = RoadTotal * 5;
   z += RailTotal * 10;
@@ -139,9 +153,9 @@ GetAssValue(void)
 
 
 /* comefrom: CityEvaluation */
-DoPopNum(void)
+void DoPopNum(void)
 {
-  QUAD OldCityPop;
+  int32_t OldCityPop;
 
   OldCityPop = CityPop;
   CityPop = ((ResPop) + (ComPop * 8L) + (IndPop *8L)) * 20L;
@@ -160,7 +174,7 @@ DoPopNum(void)
 
 
 /* comefrom: CityEvaluation */
-DoProblems(void)
+void DoProblems(void)
 {
   register short x, z;
   short ThisProb, Max;
@@ -198,9 +212,9 @@ DoProblems(void)
 
 
 /* comefrom: DoProblems */
-VoteProblems(void)
+void VoteProblems(void)
 {
-  register x, z, count;
+  register int x, z, count;
 
   for (z = 0; z < PROBNUM; z++)
     ProblemVotes[z] = 0;
@@ -221,9 +235,9 @@ VoteProblems(void)
 
 
 /* comefrom: DoProblems */
-AverageTrf(void)
+short AverageTrf(void)
 {
-  QUAD TrfTotal;
+  int32_t TrfTotal;
   register short x, y, count;
 
   TrfTotal = 0;
@@ -241,7 +255,7 @@ AverageTrf(void)
 
 
 /* comefrom: DoProblems */
-GetUnemployment(void)
+short GetUnemployment(void)
 {
   float r;
   short b;
@@ -260,7 +274,7 @@ GetUnemployment(void)
 
 
 /* comefrom: DoProblems GetScore */
-GetFire(void)
+short GetFire(void)
 {
   short z;
 
@@ -273,9 +287,9 @@ GetFire(void)
 
 
 /* comefrom: CityEvaluation */
-GetScore(void)
+void GetScore(void)
 {
-  register x, z;
+  register int x, z;
   short OldCityScore;
   float SM, TM;
 
@@ -329,9 +343,9 @@ GetScore(void)
 
 
 /* comefrom: CityEvaluation */
-DoVotes(void)
+void DoVotes(void)
 {
-  register z;
+  register int z;
 
   CityYes = 0;
   CityNo = 0;

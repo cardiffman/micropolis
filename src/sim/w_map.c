@@ -59,8 +59,20 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include <tcl.h>
+#include <tk.h>
+#include <stddef.h>
+#include <stdio.h>
+#include "view.h"
 #include "sim.h"
-
+#include "macros.h"
+#include "w_tk.h"
+#include "w_util.h"
+#include "w_x.h"
+#include "s_disast.h"
+#include "s_sim.h"
+#include "s_scan.h"
+#include "g_map.h"
 
 Tcl_HashTable MapCmds;
 
@@ -69,9 +81,12 @@ extern Tk_ConfigSpec TileViewConfigSpecs[];
 
 
 Ink *NewInk();
+void DrawMapInk(SimView *view);
+void WireDrawMap(SimView *view);
+void DrawMapEditorViews(SimView *view);
 
 
-MapCmdconfigure(VIEW_ARGS)
+int MapCmdconfigure(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -88,7 +103,7 @@ MapCmdconfigure(VIEW_ARGS)
   return result;
 }
 
-MapCmdposition(VIEW_ARGS)
+int MapCmdposition(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -103,7 +118,7 @@ MapCmdposition(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdsize(VIEW_ARGS)
+int MapCmdsize(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -124,7 +139,7 @@ MapCmdsize(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdMapState(VIEW_ARGS)
+int MapCmdMapState(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int state;
 
@@ -145,7 +160,7 @@ MapCmdMapState(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdShowEditors(VIEW_ARGS)
+int MapCmdShowEditors(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -165,7 +180,7 @@ MapCmdShowEditors(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdPanStart(VIEW_ARGS)
+int MapCmdPanStart(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y, left, right, top, bottom, width, height;
   SimView *ed;
@@ -208,7 +223,7 @@ gotit:
   return TCL_OK;
 }
 
-MapCmdPanTo(VIEW_ARGS)
+int MapCmdPanTo(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y, dx, dy;
   SimView *ed;
@@ -238,7 +253,7 @@ MapCmdPanTo(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdVisible(VIEW_ARGS)
+int MapCmdVisible(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int visible;
 
@@ -260,7 +275,7 @@ MapCmdVisible(VIEW_ARGS)
   return TCL_OK;
 }
 
-MapCmdViewAt(VIEW_ARGS)
+int MapCmdViewAt(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -280,10 +295,10 @@ MapCmdViewAt(VIEW_ARGS)
 }
 
 
-map_command_init()
+void map_command_init(void)
 {
   int new;
-  extern int TileViewCmd(CLIENT_ARGS);
+  extern int TileViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
 
   Tcl_CreateCommand(tk_mainInterp, "mapview", TileViewCmd,
 		    (ClientData)MainWindow, (void (*)()) NULL);
@@ -305,7 +320,7 @@ map_command_init()
 
 
 int
-DoMapCmd(CLIENT_ARGS)
+DoMapCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimView *view = (SimView *) clientData;
   Tcl_HashEntry *ent;
@@ -316,7 +331,7 @@ DoMapCmd(CLIENT_ARGS)
     return TCL_ERROR;
   }
 
-  if (ent = Tcl_FindHashEntry(&MapCmds, argv[1])) {
+  if ((ent = Tcl_FindHashEntry(&MapCmds, argv[1]))) {
     cmd = (int (*)())ent->clientData;
     Tk_Preserve((ClientData) view);
     result = cmd(view, interp, argc, argv);
@@ -332,7 +347,7 @@ DoMapCmd(CLIENT_ARGS)
 
 /*************************************************************************/
 
-DoNewMap(SimView *view)
+void DoNewMap(SimView *view)
 {
   sim->maps++; view->next = sim->map; sim->map = view;
 /* NewMap = 1; */
@@ -417,7 +432,7 @@ int DoUpdateMap(SimView *view)
 }
 
 
-DrawMapEditorViews(SimView *view)
+void DrawMapEditorViews(SimView *view)
 {
   Pixmap pm = Tk_WindowId(view->tkwin);
   struct SimView *ed;
@@ -481,7 +496,7 @@ struct Pix {
 struct Pix pix[MAX_PIX];
 
 
-CompareColor(struct Pix *p1, struct Pix *p2)
+int CompareColor(struct Pix *p1, struct Pix *p2)
 {
   register char c1 = p1->color, c2 = p2->color;
 
@@ -491,7 +506,7 @@ CompareColor(struct Pix *p1, struct Pix *p2)
 }
 
 
-WireDrawMap(SimView *view)
+void WireDrawMap(SimView *view)
 {
   int different, x, y, i, last, pts;
   unsigned char *old, *new;
@@ -570,7 +585,7 @@ WireDrawMap(SimView *view)
 }
 
 
-DrawMapInk(SimView *view)
+void DrawMapInk(SimView *view)
 {
   Pixmap pm = view->pixmap2;
   SimView *v;

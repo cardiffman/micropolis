@@ -59,12 +59,21 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_util.h"
+#include "w_tk.h"
+#include "w_stubs.h"
+#include "w_update.h"
+#include "s_alloc.h"
+#include "view.h"
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
 #include "sim.h"
 
 
 /* comefrom: drawTaxesCollected incBoxValue decBoxValue drawCurrentFunds 
 	     drawActualBox UpdateFunds updateCurrentCost */
-makeDollarDecimalStr(char *numStr, char *dollarStr)
+void makeDollarDecimalStr(char *numStr, char *dollarStr)
 {
   register short leftMostSet;
   short numOfDigits;
@@ -121,7 +130,7 @@ makeDollarDecimalStr(char *numStr, char *dollarStr)
 }
 
 
-Pause()
+void Pause(void)
 {
   if (!sim_paused) {
     sim_paused_speed = SimMetaSpeed;
@@ -131,7 +140,7 @@ Pause()
 }
 
 
-Resume()
+void Resume(void)
 {
   if (sim_paused) {
     sim_paused = 0;
@@ -140,7 +149,7 @@ Resume()
 }
 
 
-setSpeed(short speed)
+void setSpeed(short speed)
 {
   if (speed < 0) speed = 0;
   else if (speed > 3) speed = 3;
@@ -167,14 +176,14 @@ setSpeed(short speed)
 }
 
 
-setSkips(int skips)
+void setSkips(int skips)
 {
   sim_skips = skips;
   sim_skip = 0;
 }
 
 
-SetGameLevelFunds(short level)
+void SetGameLevelFunds(short level)
 {
   switch (level) {
   default:
@@ -194,14 +203,14 @@ SetGameLevelFunds(short level)
 }
 
 
-SetGameLevel(short level)
+void SetGameLevel(short level)
 {
   GameLevel = level;
   UpdateGameLevel();
 }
 
 
-UpdateGameLevel()
+void UpdateGameLevel(void)
 {
   char buf[256];
 
@@ -210,7 +219,7 @@ UpdateGameLevel()
 }
 
 
-setCityName(char *name)
+void setCityName(char *name)
 {
   char *cp = name;
 
@@ -223,7 +232,7 @@ setCityName(char *name)
 }
 
 
-setAnyCityName(char *name)
+void setAnyCityName(char *name)
 {
   char buf[1024];
 
@@ -233,7 +242,7 @@ setAnyCityName(char *name)
 }
 
 
-SetYear(int year)
+void SetYear(int year)
 {
   // Must prevent year from going negative, since it screws up the non-floored modulo arithmetic.
   if (year < StartingYear) {
@@ -253,7 +262,7 @@ CurrentYear()
 }
 
 
-DoSetMapState(SimView *view, short state)
+void DoSetMapState(SimView *view, short state)
 {
   char buf[256];
 
@@ -266,25 +275,25 @@ DoSetMapState(SimView *view, short state)
 }
 
 
-DoNewGame()
+void DoNewGame(void)
 {
   Eval("UINewGame");
 }
 
 
-DoGeneratedCityImage(char *name, int time, int pop, char *class, int score)
+void DoGeneratedCityImage(char *name, int time, int pop, char *class, int score)
 {
   /* XXX: TODO: print city */
 }
 
 
-DoStartElmd()
+void DoStartElmd(void)
 {
   /* XXX: TODO: start elm daemon */
 }
 
 
-DoPopUpMessage(char *msg)
+void DoPopUpMessage(char *msg)
 {
   char buf[1024];
 

@@ -59,8 +59,18 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_date.h"
+#include "w_tk.h"
+#include "w_update.h"
+#include "w_x.h"
+#include "view.h"
+#include <tcl.h>
+#include <tk.h>
+#include <tkconfig.h>
+#include <stdio.h>
 #include "sim.h"
-
+#include "macros.h"
+#include <assert.h>
 
 short NewDate = 0;
 Tcl_HashTable DateCmds;
@@ -104,6 +114,10 @@ Tk_ConfigSpec DateConfigSpecs[] = {
 
 
 XDisplay *FindXDisplay();
+void DestroyDate(SimDate *date);
+void InitNewDate(SimDate *date);
+int ConfigureSimDate(Tcl_Interp *interp, SimDate *date,
+		  int argc, char **argv, int flags);
 
 
 static void
@@ -138,7 +152,7 @@ DestroySimDate(ClientData clientData)
 }
 
 
-EventuallyRedrawDate(SimDate *date)
+void EventuallyRedrawDate(SimDate *date)
 {
   if (!(date->flags & VIEW_REDRAW_PENDING)) {
     assert(date->draw_date_token == 0);
@@ -235,7 +249,7 @@ ComputeDateGeometry(SimDate *date)
 }
 
 
-int DateCmdconfigure(DATE_ARGS)
+int DateCmdconfigure(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -253,7 +267,7 @@ int DateCmdconfigure(DATE_ARGS)
 }
 
 
-int DateCmdposition(DATE_ARGS)
+int DateCmdposition(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -271,7 +285,7 @@ int DateCmdposition(DATE_ARGS)
 }
 
 
-int DateCmdsize(DATE_ARGS)
+int DateCmdsize(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -293,7 +307,7 @@ int DateCmdsize(DATE_ARGS)
 }
 
 
-int DateCmdVisible(DATE_ARGS)
+int DateCmdVisible(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   int visible;
 
@@ -318,7 +332,7 @@ int DateCmdVisible(DATE_ARGS)
 }
 
 
-int DateCmdReset(DATE_ARGS)
+int DateCmdReset(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   int range;
 
@@ -337,7 +351,7 @@ int DateCmdReset(DATE_ARGS)
 }
 
 
-int DateCmdSet(DATE_ARGS)
+int DateCmdSet(SimDate *date, Tcl_Interp *interp, int argc, char **argv)
 {
   int range;
 
@@ -368,7 +382,7 @@ int DateCmdSet(DATE_ARGS)
 
 
 int
-DoDateCmd(CLIENT_ARGS)
+DoDateCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimDate *date = (SimDate *) clientData;
   Tcl_HashEntry *ent;
@@ -379,7 +393,7 @@ DoDateCmd(CLIENT_ARGS)
     return TCL_ERROR;
   }
 
-  if (ent = Tcl_FindHashEntry(&DateCmds, argv[1])) {
+  if ((ent = Tcl_FindHashEntry(&DateCmds, argv[1]))) {
     cmd = (int (*)())ent->clientData;
     Tk_Preserve((ClientData) date);
     result = cmd(date, interp, argc, argv);
@@ -394,7 +408,7 @@ DoDateCmd(CLIENT_ARGS)
 
 
 int
-DateViewCmd(CLIENT_ARGS)
+DateViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimDate *date;
   Tk_Window tkwin = (Tk_Window) clientData;
@@ -472,7 +486,7 @@ ConfigureSimDate(Tcl_Interp *interp, SimDate *date,
 }
 
 
-date_command_init()
+void date_command_init(void)
 {
   int new;
 
@@ -492,7 +506,7 @@ date_command_init()
 }
 
 
-InitNewDate(SimDate *date)
+void InitNewDate(SimDate *date)
 {
   int d = 8;
   struct XDisplay *xd;
@@ -537,7 +551,7 @@ InitNewDate(SimDate *date)
 }
 
 
-DestroyDate(SimDate *date)
+void DestroyDate(SimDate *date)
 {
   SimDate **gp;
 
@@ -562,7 +576,7 @@ DestroyDate(SimDate *date)
 }
 
 
-DoResizeDate(SimDate *date, int w, int h)
+void DoResizeDate(SimDate *date, int w, int h)
 {
   int resize = 0;
 
@@ -584,7 +598,7 @@ DoResizeDate(SimDate *date, int w, int h)
 }
 
 
-DoNewDate(SimDate *date)
+void DoNewDate(SimDate *date)
 {
   sim->dates++; date->next = sim->date; sim->date = date;
 
@@ -594,7 +608,7 @@ DoNewDate(SimDate *date)
 
 #define BORDER 1
 
-DoUpdateDate(SimDate *date)
+void DoUpdateDate(SimDate *date)
 {
   Display *dpy;
   GC gc;

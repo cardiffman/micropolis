@@ -59,12 +59,14 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "g_ani.h"
+#include "s_alloc.h"
 #include "sim.h"
 #include "animtab.h"
 
 
 /* comefrom: moveWorld doEditWindow scoreDoer doMapInFront graphDoer */
-animateTiles(void)
+void animateTiles(void)
 {
   unsigned short tilevalue, tileflags;
   unsigned short *tMapPtr;

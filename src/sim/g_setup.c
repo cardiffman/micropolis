@@ -59,7 +59,13 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_resrc.h"
 #include "sim.h"
+#include "view.h"
+#include "mac.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <assert.h>
 
 
 #define SIM_SMTILE	385
@@ -70,6 +76,7 @@
 
 #define gray25_width 16
 #define gray25_height 16
+#ifdef USE_X11
 static unsigned char gray25_bits[] = {
   0x77, 0x77,
   0xdd, 0xdd,
@@ -88,10 +95,12 @@ static unsigned char gray25_bits[] = {
   0x77, 0x77,
   0xdd, 0xdd,
 };
+#endif
 
 
 #define gray50_width 16
 #define gray50_height 16
+#ifdef USE_X11
 static unsigned char gray50_bits[] = {
   0x55, 0x55,
   0xaa, 0xaa,
@@ -110,10 +119,11 @@ static unsigned char gray50_bits[] = {
   0x55, 0x55,
   0xaa, 0xaa,
 };
-
+#endif
 
 #define gray75_width 16
 #define gray75_height 16
+#ifdef USE_X11
 static unsigned char gray75_bits[] = {
   0x88, 0x88,
   0x22, 0x22,
@@ -132,9 +142,11 @@ static unsigned char gray75_bits[] = {
   0x88, 0x88,
   0x22, 0x22,
 };
+#endif
 
 #define vert_width 16
 #define vert_height 16
+#ifdef USE_X11
 static unsigned char vert_bits[] = {
   0xaa, 0xaa,
   0xaa, 0xaa,
@@ -153,10 +165,12 @@ static unsigned char vert_bits[] = {
   0xaa, 0xaa,
   0xaa, 0xaa,
 };
+#endif
 
 
 #define horiz_width 16
 #define horiz_height 16
+#ifdef USE_X11
 static unsigned char horiz_bits[] = {
   0xff, 0xff,
   0x00, 0x00,
@@ -175,10 +189,12 @@ static unsigned char horiz_bits[] = {
   0xff, 0xff,
   0x00, 0x00,
 };
+#endif
 
 
 #define diag_width 16
 #define diag_height 16
+#ifdef USE_X11
 static unsigned char diag_bits[] = {
   0x55, 0x55, 
   0xee, 0xee, 
@@ -197,14 +213,15 @@ static unsigned char diag_bits[] = {
   0x55, 0x55, 
   0xba, 0xbb,
 };
+#endif
 
 
-Ptr MickGetHexa(short theID)
+uint8_t* MickGetHexa(short theID)
 {
   Handle theData;
 
   theData = GetResource("hexa", theID);
-  return ((Ptr)*theData);
+  return ((uint8_t*)*theData);
 }
 
 
@@ -213,16 +230,21 @@ GetObjectXpms(XDisplay *xd, int id, int frames)
 {
   int i;
   Pixmap *pixmaps = (Pixmap *)ckalloc(2 * frames * sizeof (Pixmap));
+#ifdef USE_X11
   XpmAttributes attributes;
+#endif
   char name[256];
 
+#ifdef USE_X11
   attributes.visual = Tk_DefaultVisual(xd->screen);
   attributes.colormap = Tk_DefaultColormap(xd->screen);
   attributes.depth = Tk_DefaultDepth(xd->screen);
   attributes.valuemask = XpmVisual | XpmColormap | XpmDepth;
+#endif
 
   for (i = 0; i < frames; i++) {
     sprintf(name, "%s/images/obj%d-%d.xpm", HomeDir, id, i);
+#ifdef USE_X11
     if (XpmReadFileToPixmap(xd->dpy, 
 			    RootWindowOfScreen(xd->screen),
 			    name,
@@ -234,13 +256,15 @@ GetObjectXpms(XDisplay *xd, int id, int frames)
       sim_exit(1); // Just sets tkMustExit and ExitReturn
       return NULL;
     }
+#endif
   }
   return (pixmaps);
 }
 
 
-GetPixmaps(XDisplay *xd)
+void GetPixmaps(XDisplay *xd)
 {
+#ifdef USE_X11
   if (xd->gray25_stipple == None) {
     xd->gray25_stipple =
       XCreatePixmapFromBitmapData(xd->dpy, xd->root,
@@ -283,18 +307,21 @@ GetPixmaps(XDisplay *xd)
     pm[EXP] = GetObjectXpms(xd, EXP, 6);
     pm[BUS] = GetObjectXpms(xd, BUS, 4);
   }
+#endif
 }
 
 
-GetViewTiles(SimView *view)
+void GetViewTiles(SimView *view)
 {
   char name[256];
+#ifdef USE_X11
   XpmAttributes attributes;
 
   attributes.visual = Tk_DefaultVisual(view->x->screen);
   attributes.colormap = Tk_DefaultColormap(view->x->screen);
   attributes.depth = Tk_DefaultDepth(view->x->screen);
   attributes.valuemask = XpmVisual | XpmColormap | XpmDepth;
+#endif
 
   if (view->class == Editor_Class) {
 
@@ -305,6 +332,7 @@ GetViewTiles(SimView *view)
 
     case X_Mem_View:
       if (view->x->big_tile_image == NULL) {
+#ifdef USE_X11
 	if (XpmReadFileToImage(view->x->dpy, name,
 			       &view->x->big_tile_image, NULL,
 			       &attributes) < 0) {
@@ -314,12 +342,14 @@ GetViewTiles(SimView *view)
 	  sim_exit(1); // Just sets tkMustExit and ExitReturn
 	  return;
 	}
+#endif
       }
       view->bigtiles = (unsigned char *)view->x->big_tile_image->data;
       break;
 
     case X_Wire_View:
       if (view->x->big_tile_pixmap == None) {
+#ifdef USE_X11
 	if (XpmReadFileToPixmap(view->x->dpy,
 				RootWindowOfScreen(view->x->screen),
 				name,
@@ -331,6 +361,7 @@ GetViewTiles(SimView *view)
 	  sim_exit(1); // Just sets tkMustExit and ExitReturn
 	  return;
 	}
+#endif
       }
       break;
 
@@ -342,6 +373,7 @@ GetViewTiles(SimView *view)
       if (view->x->color) {
 
 	sprintf(name, "%s/images/%s", HomeDir, "tilessm.xpm");
+#ifdef USE_X11
 	if (XpmReadFileToImage(view->x->dpy, name,
 			       &view->x->small_tile_image, NULL,
 			       &attributes) < 0) {
@@ -351,15 +383,18 @@ GetViewTiles(SimView *view)
 	  sim_exit(1); // Just sets tkMustExit and ExitReturn
 	  return;
 	}
+#endif
 
       } else {
 
+#ifdef USE_X11
 	view->x->small_tile_image = 
 	  XCreateImage(view->x->dpy, view->x->visual, 8,
 		       ZPixmap,
 		       0, (char *)MickGetHexa(SIM_GSMTILE),
 		       4, 3 * TILE_COUNT, 8, 4);
 
+#endif
       }
     }
 

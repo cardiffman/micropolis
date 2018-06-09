@@ -69,25 +69,6 @@
   }
 
 
-#define ARGS \
-	Tcl_Interp *interp, int argc, char **argv
-
-#define CLIENT_ARGS \
-	ClientData clientData, ARGS
-
-#define VIEW_ARGS \
-	SimView *view, ARGS
-
-#define GRAPH_ARGS \
-	SimGraph *graph, ARGS
-
-#define DATE_ARGS \
-	SimDate *date, ARGS
-
-#define SPRITE_ARGS \
-	SimSprite *sprite, ARGS
-
-
 /* tile bounds */
 
 #define TestBounds(x, y) \

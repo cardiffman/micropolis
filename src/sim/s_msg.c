@@ -59,22 +59,38 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
+//#include "sim.h"
+#include "s_msg.h"
+#include "s_sim.h"
+#include "w_stubs.h"
+#include "s_alloc.h"
+#include "s_eval.h"
+#include "w_sound.h"
+#include "w_resrc.h"
+#include "w_tk.h"
 
+#include <stdio.h>
+#include <string.h>
 
-QUAD LastCityPop;
+int32_t LastCityPop;
 short LastCategory;
 short LastPicNum;
 short autoGo;
 short HaveLastMessage = 0;
 char LastMessage[256];
-int DoAutoGoto(short x, short y, char *msg);
-int DoShowPicture(short id);
+void DoAutoGoto(short x, short y, char *msg);
+void DoShowPicture(short id);
+void DoScenarioScore(int);
+void CheckGrowth(void);
+int SendMes(int Mnum);
+void DoLoseGame(void);
+void doMessage(void);
+void SetMessageField(char*);
 
 /* comefrom: Simulate */
-SendMessages(void)
+void SendMessages(void)
 {
-  register z;
+  register int z;
   short PowerPop;
   float TM;
 
@@ -186,9 +202,9 @@ SendMessages(void)
 
 
 /* comefrom: SendMessages */
-CheckGrowth(void)
+void CheckGrowth(void)
 {
-  QUAD ThisCityPop;
+  int32_t ThisCityPop;
   short z;
 
   if (!(CityTime & 3)) {
@@ -212,7 +228,7 @@ CheckGrowth(void)
 
 
 /* comefrom: SendMessages */
-DoScenarioScore(int type)
+void DoScenarioScore(int type)
 {
   short z;
 
@@ -251,7 +267,7 @@ DoScenarioScore(int type)
 }
 
 
-ClearMes(void)
+void ClearMes(void)
 {
   MessagePort = 0;
   MesX = 0;
@@ -262,7 +278,7 @@ ClearMes(void)
 
 /* comefrom: MakeEarthquake MakeFire MakeFire MakeFlood SendMessages 
 	     CheckGrowth DoScenarioScore DoPowerScan */
-SendMes(int Mnum)
+int SendMes(int Mnum)
 {
   if (Mnum < 0) {
     if (Mnum != LastPicNum) {
@@ -294,7 +310,7 @@ void SendMesAt(short Mnum, short x, short y)
 }
 
 
-doMessage(void) 
+void doMessage(void)
 {
   char messageStr[256];
   short pictId;
@@ -401,7 +417,7 @@ doMessage(void)
 }
 
 
-DoAutoGoto(short x, short y, char *msg)
+void DoAutoGoto(short x, short y, char *msg)
 {
   char buf[256];
 
@@ -411,7 +427,7 @@ DoAutoGoto(short x, short y, char *msg)
 }
 
 
-SetMessageField(char *str)
+void SetMessageField(char *str)
 {
   char buf[256];
 
@@ -425,7 +441,7 @@ SetMessageField(char *str)
 }
 
 
-DoShowPicture(short id)
+void DoShowPicture(short id)
 {
   char buf[256];
 
@@ -434,13 +450,13 @@ DoShowPicture(short id)
 }
 
 
-DoLoseGame()
+void DoLoseGame(void)
 {
   Eval("UILoseGame");
 }
 
 
-DoWinGame()
+void DoWinGame(void)
 {
   Eval("UIWinGame");
 }

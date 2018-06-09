@@ -59,7 +59,24 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_tool.h"
+#include "w_con.h"
+#include "w_resrc.h"
+#include "w_sound.h"
+#include "w_stubs.h"
+#include "w_x.h"
+#include "w_tk.h"
+#include "w_update.h"
+#include "s_alloc.h"
+#include "s_msg.h"
+#include "s_sim.h"
+#include "view.h"
 #include "sim.h"
+#include "macros.h"
+#include "mac.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
 
 
 short specialBase = CHURCH;
@@ -72,7 +89,7 @@ int PendingX;
 int PendingY;
 
 
-QUAD CostOf[] = {
+int32_t CostOf[] = {
     100,    100,    100,    500,
       0,    500,      5,      1,
      20,     10,      0,      0,
@@ -99,7 +116,7 @@ short toolOffset[] = {
 };
 
 
-QUAD toolColors[] = {
+int32_t toolColors[] = {
  COLOR_LIGHTGREEN | (COLOR_LIGHTGREEN << 8),	/* residentialState */
  COLOR_LIGHTBLUE | (COLOR_LIGHTBLUE << 8),	/* commercialState */
  COLOR_YELLOW | (COLOR_YELLOW << 8),		/* industrialState */
@@ -122,17 +139,28 @@ QUAD toolColors[] = {
 };
 
 
-Ink *NewInk();
+Ink *NewInk(void);
 
 short tally(short tileValue);
-int DoSetWandState(SimView *view, short state);
+//int DoSetWandState(SimView *view, short state);
+void DoPendTool(SimView *view, int tool, int x, int y);
+void ToolDrag(SimView *view, int px, int py);
+int ToolUp(SimView *view, int x, int y);
+int EraserTool(SimView *view, short x, short y, short first);
+void EraserTo(SimView *view, int x, int y);
+void EraserStart(SimView *view, int x, int y);
+void ChalkTo(SimView *view, int x, int y);
+void ChalkStart(SimView *view, int x, int y, int color);
+void DoSetWandState(SimView *view, short state);
+void DoShowZoneStatus(char *str, char *s0, char *s1, char *s2, char *s3, char *s4,
+		 int x, int y);
 
 
 /*************************************************************************/
 /* UTILITIES */
 
 
-setWandState(SimView *view, short state)
+void setWandState(SimView *view, short state)
 {
 #if 0
   if (state < 0) {
@@ -762,10 +790,11 @@ int getDensityStr(short catNo, short mapH, short mapV)
     if  (z > 100) return (19);
     return (18);
   }
+  return -1;
 }
 
 
-doZoneStatus(short mapH, short mapV)
+void doZoneStatus(short mapH, short mapV)
 {
   char localStr[256];
   char statusStr[5][256];
@@ -805,7 +834,7 @@ doZoneStatus(short mapH, short mapV)
 }
 
 
-DoShowZoneStatus(char *str, char *s0, char *s1, char *s2, char *s3, char *s4,
+void DoShowZoneStatus(char *str, char *s0, char *s1, char *s2, char *s3, char *s4,
 		 int x, int y)
 {
   char buf[1024];
@@ -817,9 +846,9 @@ DoShowZoneStatus(char *str, char *s0, char *s1, char *s2, char *s3, char *s4,
 
 
 /* comefrom: processWand */
-put3x3Rubble(short x, short y)
+void put3x3Rubble(short x, short y)
 {
-  register xx, yy, zz;
+  register int xx, yy, zz;
 	
   for (xx = x - 1; xx < x + 2; xx++) {
     for (yy = y - 1; yy < y + 2; yy++)  {
@@ -839,9 +868,9 @@ put3x3Rubble(short x, short y)
 
 
 /* comefrom: processWand */
-put4x4Rubble(short x, short y)
+void put4x4Rubble(short x, short y)
 {
-  register xx, yy, zz;
+  register int xx, yy, zz;
 	
   for (xx = x - 1; xx < x + 3; xx++) {
     for (yy = y - 1; yy < y + 3; yy++) {
@@ -861,9 +890,9 @@ put4x4Rubble(short x, short y)
 
 
 /* comefrom: processWand */
-put6x6Rubble(short x, short y)
+void put6x6Rubble(short x, short y)
 {
-  register xx, yy, zz;
+  register int xx, yy, zz;
 
   for (xx = x - 1; xx < x + 5; xx++) {
     for (yy = y - 1; yy < y + 5; yy++)  {
@@ -882,7 +911,7 @@ put6x6Rubble(short x, short y)
 }	
 
 
-DidTool(SimView *view, char *name, short x, short y)
+void DidTool(SimView *view, char *name, short x, short y)
 {
   char buf[256];
 
@@ -894,7 +923,7 @@ DidTool(SimView *view, char *name, short x, short y)
 }
 
 
-DoSetWandState(SimView *view, short state)
+void DoSetWandState(SimView *view, short state)
 {
   char buf[256];
 
@@ -1306,7 +1335,7 @@ ChalkTool(SimView *view, short x, short y, short color, short first)
 }
 
 
-ChalkStart(SimView *view, int x, int y, int color)
+void ChalkStart(SimView *view, int x, int y, int color)
 {
   Ink *ink;
   Ink **ip;
@@ -1325,7 +1354,7 @@ ChalkStart(SimView *view, int x, int y, int color)
 }
 
 
-ChalkTo(SimView *view, int x, int y)
+void ChalkTo(SimView *view, int x, int y)
 {
   int x0, y0, lx, ly;
   Ink *ink = (Ink *)view->track_info;
@@ -1390,7 +1419,7 @@ EraserTool(SimView *view, short x, short y, short first)
 }
 
 
-InkInBox(Ink *ink, int left, int top, int right, int bottom)
+int InkInBox(Ink *ink, int left, int top, int right, int bottom)
 {
   if ((left <= ink->right) &&
       (right >= ink->left) &&
@@ -1424,13 +1453,13 @@ InkInBox(Ink *ink, int left, int top, int right, int bottom)
 }
 
 
-EraserStart(SimView *view, int x, int y)
+void EraserStart(SimView *view, int x, int y)
 {
   EraserTo(view, x, y);
 }
 
 
-EraserTo(SimView *view, int x, int y)
+void EraserTo(SimView *view, int x, int y)
 {
   SimView *v;
   Ink **ip, *ink;
@@ -1541,7 +1570,7 @@ current_tool(SimView *view, short x, short y, short first)
 }
 
 
-DoTool(SimView *view, short tool, short x, short y)
+void DoTool(SimView *view, short tool, short x, short y)
 {
   int result;
 
@@ -1563,7 +1592,7 @@ DoTool(SimView *view, short tool, short x, short y)
 }
 
 
-ToolDown(SimView *view, int x, int y)
+void ToolDown(SimView *view, int x, int y)
 {
   int result;
 
@@ -1591,17 +1620,17 @@ ToolDown(SimView *view, int x, int y)
 }
 
 
-ToolUp(SimView *view, int x, int y)
+int ToolUp(SimView *view, int x, int y)
 {
-  int result;
+  int result = 0;
 
-  result = ToolDrag(view, x, y);
+  /*result =*/ ToolDrag(view, x, y);
 
   return (result);
 }
 
 
-ToolDrag(SimView *view, int px, int py)
+void ToolDrag(SimView *view, int px, int py)
 {
   int x, y, dx, dy, adx, ady, lx, ly, dist;
   float i, step, tx, ty, dtx, dty, rx, ry;
@@ -1684,7 +1713,7 @@ ToolDrag(SimView *view, int px, int py)
 }
 
 
-DoPendTool(SimView *view, int tool, int x, int y)
+void DoPendTool(SimView *view, int tool, int x, int y)
 {
   char buf[256];
 

@@ -60,9 +60,47 @@
  * NOT APPLY TO YOU.
  */
 #include "sim.h"
+#include "w_x.h"
+#include "w_resrc.h"
+#include "w_stubs.h"
+#include "w_update.h"
+#include "s_msg.h"
+#include "s_alloc.h"
+#include "w_eval.h"
+#include "w_sound.h"
+#include "w_graph.h"
+#include "w_budget.h"
+#include "g_map.h"
+#include "w_tk.h"
+#include "s_init.h"
+#include "s_gen.h"
+#include "w_util.h"
+#include "w_editor.h"
+#include "s_scan.h"
+#include "s_disast.h"
+#include "w_map.h"
+#include "w_sprite.h"
+#include "s_sim.h"
 
+#include "view.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <signal.h>
+#include <getopt.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <ctype.h>
+
+#include "tk.h"
+#include "mac.h"
 
 /* Sim City */
+void sim_update_editors(void);
+static void sim_update_maps(void);
+static void sim_update_graphs(void);
+static void sim_update_budgets(void);
+static void sim_update_evaluations(void);
+void sim_loop(int doSim);
 
 char *MicropolisVersion = "4.0";
 Sim *sim = NULL;
@@ -96,15 +134,16 @@ char *Displays = NULL;
 char *FirstDisplay = NULL;
 int ExitReturn = 0;
 
+void signal_init(void);
 
-sim_exit(int val)
+void sim_exit(int val)
 {
   tkMustExit = 1;
   ExitReturn = val;
 }
 
 
-sim_really_exit(int val)
+void sim_really_exit(int val)
 {
   DoStopMicropolis();
 
@@ -236,7 +275,7 @@ SignalExitHandler()
 }
 
 
-signal_init()
+void signal_init(void)
 {
   signal(SIGHUP, (void (*)())SignalExitHandler);
   signal(SIGINT, (void (*)())SignalExitHandler);
@@ -267,7 +306,7 @@ sim_update()
 }
 
 
-sim_update_editors(void)
+void sim_update_editors(void)
 {
   SimView *view;
 
@@ -285,7 +324,7 @@ sim_update_editors(void)
 }
 
 
-sim_update_maps(void)
+static void sim_update_maps(void)
 {
   SimView *view;
   int i;
@@ -319,13 +358,13 @@ sim_update_maps(void)
 }
 
 
-sim_update_graphs(void)
+static void sim_update_graphs(void)
 {
   graphDoer();
 }
 
 
-sim_update_budgets(void)
+static void sim_update_budgets(void)
 {
   if ((sim_skips != 0) &&
       (sim_skip != 0)) {
@@ -336,7 +375,7 @@ sim_update_budgets(void)
 }
 
 
-sim_update_evaluations(void)
+static void sim_update_evaluations(void)
 {
   if ((sim_skips != 0) &&
       (sim_skip != 0)) {
@@ -557,7 +596,7 @@ sim_timeout_loop(short doSim)
 }
 
 
-sim_loop(int doSim)
+void sim_loop(int doSim)
 {
 #ifdef CAM
   if (!sim_just_cam) {

@@ -59,8 +59,24 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_editor.h"
+#include "w_keys.h"
+#include "w_sprite.h"
+#include "w_stubs.h"
+#include "w_tool.h"
+#include "w_tk.h"
+#include "w_x.h"
+#include "s_disast.h"
+#include "s_scan.h"
+#include "s_sim.h"
+#include "g_ani.h"
+#include "g_bigmap.h"
+#include "view.h"
 #include "sim.h"
-
+#include "macros.h"
+#include <sys/time.h>
+#include <math.h>
+#include <stdio.h>
 
 Tcl_HashTable EditorCmds;
 int DoOverlay = 2;
@@ -70,7 +86,7 @@ int BobHeight = 8;
 extern Tk_ConfigSpec TileViewConfigSpecs[];
 
 
-int EditorCmdconfigure(VIEW_ARGS)
+int EditorCmdconfigure(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int result = TCL_OK;
 
@@ -88,7 +104,7 @@ int EditorCmdconfigure(VIEW_ARGS)
 }
 
 
-int EditorCmdposition(VIEW_ARGS)
+int EditorCmdposition(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -104,7 +120,7 @@ int EditorCmdposition(VIEW_ARGS)
 }
 
 
-int EditorCmdsize(VIEW_ARGS)
+int EditorCmdsize(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -126,7 +142,7 @@ int EditorCmdsize(VIEW_ARGS)
 }
 
 
-int EditorCmdAutoGoto(VIEW_ARGS)
+int EditorCmdAutoGoto(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return TCL_ERROR;
@@ -145,7 +161,7 @@ int EditorCmdAutoGoto(VIEW_ARGS)
 }
 
 
-int EditorCmdSound(VIEW_ARGS)
+int EditorCmdSound(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return TCL_ERROR;
@@ -164,7 +180,7 @@ int EditorCmdSound(VIEW_ARGS)
 }
 
 
-int EditorCmdSkip(VIEW_ARGS)
+int EditorCmdSkip(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return TCL_ERROR;
@@ -182,7 +198,7 @@ int EditorCmdSkip(VIEW_ARGS)
 }
 
 
-int EditorCmdUpdate(VIEW_ARGS)
+int EditorCmdUpdate(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if (argc != 2) {
     return TCL_ERROR;
@@ -192,7 +208,7 @@ int EditorCmdUpdate(VIEW_ARGS)
 }
 
 
-int EditorCmdPan(VIEW_ARGS)
+int EditorCmdPan(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -213,7 +229,7 @@ int EditorCmdPan(VIEW_ARGS)
 }
 
 
-int EditorCmdToolConstrain(VIEW_ARGS)
+int EditorCmdToolConstrain(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x = -1, y = -1, tx, ty;
 
@@ -235,7 +251,7 @@ int EditorCmdToolConstrain(VIEW_ARGS)
 }
 
 
-int EditorCmdToolState(VIEW_ARGS)
+int EditorCmdToolState(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return TCL_ERROR;
@@ -253,7 +269,7 @@ int EditorCmdToolState(VIEW_ARGS)
 }
 
 
-int EditorCmdToolMode(VIEW_ARGS)
+int EditorCmdToolMode(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return TCL_ERROR;
@@ -271,7 +287,7 @@ int EditorCmdToolMode(VIEW_ARGS)
 }
 
 
-int EditorCmdDoTool(VIEW_ARGS)
+int EditorCmdDoTool(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int tool, x, y;
 
@@ -292,7 +308,7 @@ int EditorCmdDoTool(VIEW_ARGS)
 }
 
 
-int EditorCmdToolDown(VIEW_ARGS)
+int EditorCmdToolDown(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -310,7 +326,7 @@ int EditorCmdToolDown(VIEW_ARGS)
 }
 
 
-int EditorCmdToolDrag(VIEW_ARGS)
+int EditorCmdToolDrag(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -328,7 +344,7 @@ int EditorCmdToolDrag(VIEW_ARGS)
 }
 
 
-int EditorCmdToolUp(VIEW_ARGS)
+int EditorCmdToolUp(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -346,7 +362,7 @@ int EditorCmdToolUp(VIEW_ARGS)
 }
 
 
-int EditorCmdPanStart(VIEW_ARGS)
+int EditorCmdPanStart(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -365,7 +381,7 @@ int EditorCmdPanStart(VIEW_ARGS)
 }
 
 
-int EditorCmdPanTo(VIEW_ARGS)
+int EditorCmdPanTo(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y, dx, dy;
 
@@ -389,7 +405,7 @@ int EditorCmdPanTo(VIEW_ARGS)
 }
 
 
-int EditorCmdPanBy(VIEW_ARGS)
+int EditorCmdPanBy(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int dx, dy;
 
@@ -407,7 +423,7 @@ int EditorCmdPanBy(VIEW_ARGS)
 }
 
 
-int EditorCmdTweakCursor(VIEW_ARGS)
+int EditorCmdTweakCursor(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -417,7 +433,7 @@ int EditorCmdTweakCursor(VIEW_ARGS)
 }
 
 
-int EditorCmdVisible(VIEW_ARGS)
+int EditorCmdVisible(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int visible;
 
@@ -440,7 +456,7 @@ int EditorCmdVisible(VIEW_ARGS)
 }
 
 
-int EditorCmdKeyDown(VIEW_ARGS)
+int EditorCmdKeyDown(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
 
   if (argc != 3) {
@@ -452,7 +468,7 @@ int EditorCmdKeyDown(VIEW_ARGS)
 }
 
 
-int EditorCmdKeyUp(VIEW_ARGS)
+int EditorCmdKeyUp(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
 
   if (argc != 3) {
@@ -464,7 +480,7 @@ int EditorCmdKeyUp(VIEW_ARGS)
 }
 
 
-int EditorCmdTileCoord(VIEW_ARGS)
+int EditorCmdTileCoord(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -486,7 +502,7 @@ int EditorCmdTileCoord(VIEW_ARGS)
 }
 
 
-int EditorCmdChalkStart(VIEW_ARGS)
+int EditorCmdChalkStart(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -504,7 +520,7 @@ int EditorCmdChalkStart(VIEW_ARGS)
 }
 
 
-int EditorCmdChalkTo(VIEW_ARGS)
+int EditorCmdChalkTo(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
 
@@ -522,7 +538,7 @@ int EditorCmdChalkTo(VIEW_ARGS)
 }
 
 
-int EditorCmdAutoGoing(VIEW_ARGS)
+int EditorCmdAutoGoing(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int flag;
 
@@ -545,7 +561,7 @@ int EditorCmdAutoGoing(VIEW_ARGS)
 }
 
 
-int EditorCmdAutoSpeed(VIEW_ARGS)
+int EditorCmdAutoSpeed(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int speed;
 
@@ -567,7 +583,7 @@ int EditorCmdAutoSpeed(VIEW_ARGS)
 }
 
 
-int EditorCmdAutoGoal(VIEW_ARGS)
+int EditorCmdAutoGoal(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 4)) {
     return TCL_ERROR;
@@ -597,7 +613,7 @@ int EditorCmdAutoGoal(VIEW_ARGS)
 }
 
 
-int EditorCmdSU(VIEW_ARGS)
+int EditorCmdSU(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int su;
 
@@ -619,7 +635,7 @@ int EditorCmdSU(VIEW_ARGS)
 }
 
 
-int EditorCmdShowMe(VIEW_ARGS)
+int EditorCmdShowMe(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int flag;
 
@@ -640,7 +656,7 @@ int EditorCmdShowMe(VIEW_ARGS)
 }
 
 
-int EditorCmdFollow(VIEW_ARGS)
+int EditorCmdFollow(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int id;
   SimSprite *sprite;
@@ -671,7 +687,7 @@ int EditorCmdFollow(VIEW_ARGS)
 }
 
 
-int EditorCmdShowOverlay(VIEW_ARGS)
+int EditorCmdShowOverlay(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int flag;
 
@@ -692,7 +708,7 @@ int EditorCmdShowOverlay(VIEW_ARGS)
 }
 
 
-int EditorCmdOverlayMode(VIEW_ARGS)
+int EditorCmdOverlayMode(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int flag;
 
@@ -713,7 +729,7 @@ int EditorCmdOverlayMode(VIEW_ARGS)
 }
 
 
-int EditorCmdDynamicFilter(VIEW_ARGS)
+int EditorCmdDynamicFilter(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -734,7 +750,7 @@ int EditorCmdDynamicFilter(VIEW_ARGS)
 }
 
 
-int EditorCmdWriteJpeg(VIEW_ARGS)
+int EditorCmdWriteJpeg(SimView *view, Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
   char *fileName = argv[2];
@@ -749,10 +765,10 @@ int EditorCmdWriteJpeg(VIEW_ARGS)
 }
 
 
-editor_command_init()
+void editor_command_init(void)
 {
   int new;
-  extern int TileViewCmd(CLIENT_ARGS);
+  extern int TileViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
 
   Tcl_CreateCommand(tk_mainInterp, "editorview", TileViewCmd,
 		    (ClientData)MainWindow, (void (*)()) NULL);
@@ -799,7 +815,7 @@ editor_command_init()
 
 
 int
-DoEditorCmd(CLIENT_ARGS)
+DoEditorCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   SimView *view = (SimView *) clientData;
   Tcl_HashEntry *ent;
@@ -810,7 +826,7 @@ DoEditorCmd(CLIENT_ARGS)
     return TCL_ERROR;
   }
 
-  if (ent = Tcl_FindHashEntry(&EditorCmds, argv[1])) {
+  if ((ent = Tcl_FindHashEntry(&EditorCmds, argv[1]))) {
     cmd = (int (*)())ent->clientData;
     Tk_Preserve((ClientData) view);
     result = cmd(view, interp, argc, argv);
@@ -828,21 +844,21 @@ DoEditorCmd(CLIENT_ARGS)
 /*************************************************************************/
 
 
-DoNewEditor(SimView *view)
+void DoNewEditor(SimView *view)
 {
   sim->editors++; view->next = sim->editor; sim->editor = view;
   view->invalid = 1;
 }
 
 
-DoUpdateEditor(SimView *view)
+int DoUpdateEditor(SimView *view)
 {
   int dx, dy, i;
 
   view->updates++;
 
   if (!view->visible) {
-    return;
+    return 1;
   }
 
   if ((!ShakeNow) &&
@@ -915,10 +931,11 @@ DoUpdateEditor(SimView *view)
   DrawCursor(view);
 
   view->invalid = 0;
+  return 1;
 }
 
 
-HandleAutoGoto(SimView *view)
+void HandleAutoGoto(SimView *view)
 {
   if (view->follow != NULL) {
     int x = view->follow->x + view->follow->x_hot,
@@ -977,7 +994,7 @@ HandleAutoGoto(SimView *view)
   }
 }
 
-DrawOutside(SimView *view)
+void DrawOutside(SimView *view)
 {
   Pixmap pm = view->pixmap2;
   int left = (view->w_width / 2) - view->pan_x;
@@ -1014,7 +1031,7 @@ DrawOutside(SimView *view)
 
 char CursorDashes[] = { 4, 4 };
 
-DrawPending(SimView *view)
+void DrawPending(SimView *view)
 {
   Pixmap pm = view->pixmap2;
   int left = (view->w_width / 2) - view->pan_x;
@@ -1078,7 +1095,7 @@ DrawPending(SimView *view)
 }
 
 
-DrawCursor(SimView *view)
+void DrawCursor(SimView *view)
 {
   Pixmap pm = Tk_WindowId(view->tkwin);
   int left = (view->w_width / 2) - view->pan_x;
@@ -1406,7 +1423,7 @@ DrawCursor(SimView *view)
 }
 
 
-TimeElapsed(struct timeval *elapsed,
+void TimeElapsed(struct timeval *elapsed,
 	    struct timeval *start,
 	    struct timeval *finish)
 {
@@ -1423,7 +1440,7 @@ TimeElapsed(struct timeval *elapsed,
 
 
 
-DrawOverlay(SimView *view)
+void DrawOverlay(SimView *view)
 {
   int width = view->w_width;
   int height = view->w_height;
@@ -1512,7 +1529,7 @@ DrawOverlay(SimView *view)
 }
 
 
-DrawTheOverlay(SimView *view, GC gc, Pixmap pm, int color, 
+void DrawTheOverlay(SimView *view, GC gc, Pixmap pm, int color,
 	       int top, int bottom, int left, int right,
 	       int onoverlay)
 {
@@ -1555,7 +1572,7 @@ DrawTheOverlay(SimView *view, GC gc, Pixmap pm, int color,
 }
 
 
-ClipTheOverlay(SimView *view)
+void ClipTheOverlay(SimView *view)
 {
   if (view->x->color) {
     XSetForeground(view->x->dpy, view->x->gc, view->pixels[COLOR_WHITE]);

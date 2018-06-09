@@ -59,8 +59,9 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "s_alloc.h"
+#include "mac.h"
 #include "sim.h"
-
 
 /* Allocate Stuff */
 
@@ -79,7 +80,7 @@ short CoalPop, NuclearPop, PortPop, APortPop;
 short NeedHosp, NeedChurch;
 short CrimeAverage, PolluteAverage, LVAverage;
 
-QUAD CityTime;
+int32_t CityTime;
 short StartingYear;
 
 short *Map[WORLD_X];
@@ -92,22 +93,22 @@ short CensusChanged;
 short MessagePort;
 short MesX, MesY;
 
-QUAD RoadSpend, PoliceSpend, FireSpend;
-QUAD RoadFund, PoliceFund, FireFund;
+int32_t RoadSpend, PoliceSpend, FireSpend;
+int32_t RoadFund, PoliceFund, FireFund;
 short RoadEffect, PoliceEffect, FireEffect;
-QUAD TaxFund; 
+int32_t TaxFund;
 short CityTax, TaxFlag;
 unsigned char tileSynch = 0x01;
 
-Byte *PopDensity[HWLDX];
-Byte *TrfDensity[HWLDX];
-Byte *PollutionMem[HWLDX];
-Byte *LandValueMem[HWLDX];
-Byte *CrimeMem[HWLDX];
-Byte *tem[HWLDX];
-Byte *tem2[HWLDX];
-Byte *TerrainMem[QWX];
-Byte *Qtem[QWX];
+uint8_t *PopDensity[HWLDX];
+uint8_t *TrfDensity[HWLDX];
+uint8_t *PollutionMem[HWLDX];
+uint8_t *LandValueMem[HWLDX];
+uint8_t *CrimeMem[HWLDX];
+uint8_t *tem[HWLDX];
+uint8_t *tem2[HWLDX];
+uint8_t *TerrainMem[QWX];
+uint8_t *Qtem[QWX];
 
 short RateOGMem[SmX][SmY];
 short FireStMap[SmX][SmY];
@@ -147,7 +148,7 @@ short *MiscHis;
 short *PowerMap;
 
 
-int initMapArrays(void)
+void initMapArrays(void)
 {
   short i;
   unsigned short *auxPtr, *temp1;

@@ -59,8 +59,15 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
-
+#include "w_resrc.h"
+//#include "sim.h"
+#include "mac.h"
+#include <stdlib.h>
+#include <tcl.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <string.h>
 
 #ifdef MSDOS
 #define PATHSTR	"%s\\%c%c%c%c.%d"
@@ -76,14 +83,14 @@ char *HomeDir, *ResourceDir, *KeyDir, *HostName;
 struct Resource *Resources = NULL;
 
 struct StringTable {
-  QUAD id;
+  int32_t id;
   int lines;
   char **strings;
   struct StringTable *next;
 } *StringTables;
 
 
-Handle GetResource(char *name, QUAD id)
+Handle GetResource(char *name, int32_t id)
 {
   struct Resource *r = Resources;
   char fname[256];
@@ -135,7 +142,7 @@ ReleaseResource(Handle r)
 }
 
 
-QUAD
+int32_t
 ResourceSize(Handle h)
 {
   struct Resource *r = (struct Resource *)h;
@@ -153,7 +160,7 @@ ResourceName(Handle h)
 }
 
 
-QUAD
+int32_t
 ResourceID(Handle h)
 {
   struct Resource *r = (struct Resource *)h;
@@ -162,7 +169,7 @@ ResourceID(Handle h)
 }
 
 
-GetIndString(char *str, int id, short num)
+void GetIndString(char *str, int id, short num)
 {
   struct StringTable **tp, *st = NULL;
   Handle h;
@@ -177,7 +184,7 @@ GetIndString(char *str, int id, short num)
     tp = &((*tp)->next);
   }
   if (!st) {
-    QUAD i, lines, size;
+    int32_t i, lines, size;
     char *buf;
 
     st = (struct StringTable *)ckalloc(sizeof (struct StringTable));

@@ -59,8 +59,13 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
+//#include "sim.h"
+#include "s_scan.h"
+#include "s_alloc.h"
+#include "s_zone.h"
+#include "s_sim.h"
 
+#include <stdint.h>
 
 /* Map Updates */
 
@@ -70,13 +75,23 @@ short NewMapFlags[NMAPS];
 short CCx, CCy, CCx2, CCy2;
 short PolMaxX, PolMaxY;
 short CrimeMaxX, CrimeMaxY;
-QUAD DonDither = 0;
+int32_t DonDither = 0;
 
+void DistIntMarket(void);
+void SmoothFSMap(void);
+void SmoothPSMap(void);
+void DoSmooth(void);
+void DoSmooth2(void);
+void ClrTemArray(void);
+int GetPDen(int);
+int GetPValue(int loc);
+int GetDisCC(int x, int y);
+void SmoothTerrain(void);
 
 /* comefrom: Simulate SpecialInit */
-FireAnalysis(void)		/* Make firerate map from firestation map  */
+void FireAnalysis(void)		/* Make firerate map from firestation map  */
 {
-  register x,y;
+  register int x,y;
 
   SmoothFSMap();
   SmoothFSMap();
@@ -90,9 +105,9 @@ FireAnalysis(void)		/* Make firerate map from firestation map  */
 
 
 /* comefrom: Simulate SpecialInit */
-PopDenScan(void)		/*  sets: PopDensity, , , ComRate  */
+void PopDenScan(void)		/*  sets: PopDensity, , , ComRate  */
 {
-  QUAD Xtot, Ytot, Ztot;
+  int32_t Xtot, Ytot, Ztot;
   register short x, y, z;
 
   ClrTemArray();
@@ -139,12 +154,12 @@ PopDenScan(void)		/*  sets: PopDensity, , , ComRate  */
 
 
 /* comefrom: PopDenScan */
-GetPDen(int Ch9)
+int GetPDen(int Ch9)
 {
   register int pop;
 
   if (Ch9 == FREEZ) {
-    pop = DoFreePop(Ch9);
+    pop = DoFreePop(/*Ch9*/);
     return (pop);
   }
   if (Ch9 < COMBASE) {
@@ -164,9 +179,9 @@ GetPDen(int Ch9)
 
 
 /* comefrom: Simulate SpecialInit */
-PTLScan(void)   	/* Does pollution, terrain, land value   */
+void PTLScan(void)   	/* Does pollution, terrain, land value   */
 {
-  QUAD ptot, LVtot;
+  int32_t ptot, LVtot;
   register int x, y, z, dis;
   int Plevel, LVflag, loc, zx, zy, Mx, My, pnum, LVnum, pmax;
 
@@ -183,7 +198,7 @@ PTLScan(void)   	/* Does pollution, terrain, land value   */
       zy = y <<1;
       for (Mx = zx; Mx <= zx + 1; Mx++)
 	for (My = zy; My <= zy + 1; My++) {
-	  if (loc = (Map[Mx][My] & LOMASK)) {
+	  if ((loc = (Map[Mx][My] & LOMASK))) {
 	    if (loc < RUBBLE) {
 	      Qtem[x >>1][y >>1] += 15;	/* inc terrainMem */
 	      continue;
@@ -254,7 +269,7 @@ PTLScan(void)   	/* Does pollution, terrain, land value   */
 
 
 /* comefrom: PTLScan */
-GetPValue(int loc)
+int GetPValue(int loc)
 {
   if (loc < POWERBASE) {
     if (loc >= HTRFBASE) return (/* 25 */ 75);	/* heavy traf  */
@@ -274,7 +289,7 @@ GetPValue(int loc)
 
 
 /* comefrom: PTLScan DistIntMarket */
-GetDisCC(int x, int y)
+int GetDisCC(int x, int y)
 {
   short xdis, ydis, z;
 
@@ -297,10 +312,10 @@ GetDisCC(int x, int y)
 
 
 /* comefrom: Simulate SpecialInit */
-CrimeScan(void)
+void CrimeScan(void)
 {
   short numz;
-  QUAD totz;
+  int32_t totz;
   register short x, y, z;
   short cmax;
 
@@ -312,7 +327,7 @@ CrimeScan(void)
   cmax = 0;
   for (x = 0; x < HWLDX; x++)
     for (y = 0; y < HWLDY; y++) {
-      if (z = LandValueMem[x][y]) {
+      if ((z = LandValueMem[x][y])) {
 	++numz;
 	z = 128 - z;
 	z += PopDensity[x][y];
@@ -344,7 +359,7 @@ CrimeScan(void)
 
 
 /* comefrom: PTLScan */
-SmoothTerrain(void)
+void SmoothTerrain(void)
 {
   if (DonDither & 1) {
     register int x, y = 0, z = 0, dir = 1;
@@ -378,7 +393,7 @@ SmoothTerrain(void)
 }
 
 /* comefrom: PopDenScan */
-DoSmooth (void)        /* smooths data in tem[x][y] into tem2[x][y]  */
+void DoSmooth (void)        /* smooths data in tem[x][y] into tem2[x][y]  */
 {
   if (DonDither & 2) {
     register int x, y = 0, z = 0, dir = 1;
@@ -425,7 +440,7 @@ DoSmooth (void)        /* smooths data in tem[x][y] into tem2[x][y]  */
 
 
 /* comefrom: PopDenScan */
-DoSmooth2 (void)        /* smooths data in tem2[x][y] into tem[x][y]  */
+void DoSmooth2 (void)        /* smooths data in tem2[x][y] into tem[x][y]  */
 {
   if (DonDither & 4) {
     register int x, y = 0, z = 0, dir = 1;
@@ -472,7 +487,7 @@ DoSmooth2 (void)        /* smooths data in tem2[x][y] into tem[x][y]  */
 
 
 /* comefrom: PopDenScan */
-ClrTemArray(void)
+void ClrTemArray(void)
 {
   register short x, y, z;
 
@@ -484,7 +499,7 @@ ClrTemArray(void)
 
 
 /* comefrom: FireAnalysis */
-SmoothFSMap(void)
+void SmoothFSMap(void)
 {
   register short x, y, edge;
 
@@ -505,9 +520,9 @@ SmoothFSMap(void)
 
 
 /* comefrom: CrimeScan */
-SmoothPSMap(void)
+void SmoothPSMap(void)
 {
-  register x, y, edge;
+  register int x, y, edge;
 
   for (x = 0; x < SmX; x++)
     for (y = 0; y < SmY; y++) {
@@ -526,7 +541,7 @@ SmoothPSMap(void)
 
 
 /* comefrom: PopDenScan */
-DistIntMarket(void)
+void DistIntMarket(void)
 {
   register short x, y, z;
 

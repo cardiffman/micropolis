@@ -59,7 +59,12 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
+#include "w_sound.h"
+#include "w_stubs.h"
+#include "w_tk.h"
+#include "view.h"
+//#include "sim.h"
+#include <stdio.h>
 
 
 /* Sound routines */
@@ -67,9 +72,11 @@
 
 int SoundInitialized = 0;
 short Dozing;
+void DoStartSound(char *channel, char *id);
+void DoStopSound(char *id);
 
 
-InitializeSound()
+void InitializeSound(void)
 {
   char cmd[256];
 
@@ -81,7 +88,7 @@ InitializeSound()
 }
 
 
-ShutDownSound()
+void ShutDownSound(void)
 {
   if (SoundInitialized) {
     SoundInitialized = 0;
@@ -90,7 +97,7 @@ ShutDownSound()
 }
 
 
-MakeSound(char *channel, char *id)
+void MakeSound(char *channel, char *id)
 {
   char buf[256];
 
@@ -102,7 +109,7 @@ MakeSound(char *channel, char *id)
 }
 
 
-MakeSoundOn(SimView *view, char *channel, char *id)
+void MakeSoundOn(SimView *view, char *channel, char *id)
 {
   char buf[256];
 
@@ -115,7 +122,7 @@ MakeSoundOn(SimView *view, char *channel, char *id)
 }
 
 
-StartBulldozer(void)
+void StartBulldozer(void)
 {
   if (!UserSoundOn) return;
   if (!SoundInitialized) InitializeSound();
@@ -126,7 +133,7 @@ StartBulldozer(void)
 }
 
 
-StopBulldozer(void)
+void StopBulldozer(void)
 {
   if ((!UserSoundOn) || (!SoundInitialized)) return;
   DoStopSound("1");
@@ -135,7 +142,7 @@ StopBulldozer(void)
 
 
 /* comefrom: doKeyEvent */
-SoundOff(void)
+void SoundOff(void)
 {
   if (!SoundInitialized) InitializeSound();
   Eval("UISoundOff");
@@ -143,7 +150,7 @@ SoundOff(void)
 }
 
 
-DoStartSound(char *channel, char *id)
+void DoStartSound(char *channel, char *id)
 {
   char buf[256];
 
@@ -152,7 +159,7 @@ DoStartSound(char *channel, char *id)
 }
 
 
-DoStopSound(char *id)
+void DoStopSound(char *id)
 {
   char buf[256];
 

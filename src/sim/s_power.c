@@ -59,19 +59,24 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
+#include "s_power.h"
+#include "s_alloc.h"
+#include "s_msg.h"
 
+#include "sim.h"
+#include <stdint.h>
 
 /* Power Scan */
 
 
 int PowerStackNum;
 char PowerStackX[PWRSTKSIZE], PowerStackY[PWRSTKSIZE];
-QUAD MaxPower, NumPower;
+int32_t MaxPower, NumPower;
+void PullPowerStack(void);
 
 
 /* comefrom: TestForCond DoPowerScan TryGo */
-MoveMapSim (short MDir)
+int MoveMapSim (short MDir)
 {
   switch (MDir) {
   case 0:
@@ -183,7 +188,7 @@ short TestForCond(short TFDir)
 
 
 /* comefrom: Simulate SpecialInit InitSimMemory */
-DoPowerScan()
+void DoPowerScan(void)
 {	
   short ADir;
   register int ConNum, Dir, x;
@@ -230,7 +235,7 @@ DoPowerScan()
 
 
 /* comefrom: DoPowerScan DoSPZone */
-PushPowerStack(void) 
+void PushPowerStack(void)
 { 	
   if (PowerStackNum < (PWRSTKSIZE - 2)) {
     PowerStackNum++;
@@ -241,7 +246,7 @@ PushPowerStack(void)
 
 
 /* comefrom: DoPowerScan */
-PullPowerStack(void)
+void PullPowerStack(void)
 { 	
   if (PowerStackNum > 0)  {
     SMapX = PowerStackX[PowerStackNum];

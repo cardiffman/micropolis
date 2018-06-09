@@ -72,6 +72,8 @@
 
 #define VIEW_REDRAW_PENDING 1
 
+#include <X11/Xlib.h>
+#include "tkint.h"
 
 typedef struct Ink {
   struct Ink *next;
@@ -179,7 +181,9 @@ typedef struct SimView {
   int flags;
 
   XDisplay *x;
+#ifdef USE_X11
   XShmSegmentInfo *shminfo;
+#endif
   short **tiles;
   short **other_tiles;
   XImage *image;

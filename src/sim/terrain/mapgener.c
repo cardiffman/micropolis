@@ -64,6 +64,9 @@
 
 #include "sim.h"
 
+#define far
+#define near
+
 #define TRUE 1
 #define FALSE 0
 #define WORLD_X 120
@@ -82,7 +85,7 @@ static int  Dir, LastDir;
 					/* trash values for GRand()  	*/
 static int GRanArray[5] = { 1018,4521,202,419,3 }; 
 
-far GenerateMap()
+void far GenerateMap(void)
 {
 	GRanArray[0] = TickCount();  /* This is the only machine-specific call  */
 								 /* It inits GRand() w/ clockcount(long)	*/
@@ -99,7 +102,7 @@ far GenerateMap()
 	DoTrees();
 }
 
-near ClearMap()
+void near ClearMap(void)
 {
 register int x, y;
 
@@ -110,7 +113,7 @@ register int x, y;
 
 #define RADIUS 18
 
-near MakeIsland()
+void near MakeIsland(void)
 {
 	register int x,y,z;
 	
@@ -146,7 +149,7 @@ near MakeIsland()
 	DoTrees();
 }
 
-near MakeLakes()
+void near MakeLakes(void)
 {
 	int Lim1, Lim2, t, z;
 	register int x, y;
@@ -165,7 +168,7 @@ near MakeLakes()
 	}
 }
 
-near GetRandStart()
+void near GetRandStart(void)
 {
 	XStart = 40 + GRand(40);
 	YStart = 33 + GRand(33);
@@ -173,7 +176,7 @@ near GetRandStart()
 	MapY = YStart;
 }
 
-near DoTrees()
+void near DoTrees(void)
 {
 	int Amount,x,xloc,yloc;
 
@@ -187,8 +190,7 @@ near DoTrees()
 	SmoothTrees();
 }
 
-near TreeSplash(xloc,yloc)
-int xloc,yloc;
+void near TreeSplash(int xloc, int yloc)
 {
 	int  Dis, Dir;
 	register int xoff, yoff,z;
@@ -204,7 +206,7 @@ int xloc,yloc;
 	}
 }
 	
-far SmoothRiver()
+void far SmoothRiver(void)
 {
  static int DX[4] = {-1, 0, 1, 0};
  static int DY[4] = { 0, 1, 0,-1};
@@ -230,7 +232,7 @@ far SmoothRiver()
  		}
  }
 
-far SmoothTrees()
+void far SmoothTrees(void)
 {
  static int DX[4] = {-1, 0, 1, 0};
  static int DY[4] = { 0, 1, 0,-1};
@@ -261,7 +263,7 @@ far SmoothTrees()
  		}
  }
  
-near DoRivers()
+void near DoRivers(void)
 {	
 
 	LastDir = GRand(3);
@@ -278,7 +280,7 @@ near DoRivers()
 	DoSRiv();
 }
 
-near DoBRiv()
+void near DoBRiv(void)
 {
 int temp, count;
 
@@ -292,7 +294,7 @@ int temp, count;
 	}
 }
 
-near DoSRiv()
+void near DoSRiv(void)
 {
 int temp;
 
@@ -305,8 +307,7 @@ int temp;
 	}
 }
 
-near MoveMap	(dir)
-int dir;
+void near MoveMap	(int dir)
 {
 static int DirTab[2][8] ={		{ 0, 1, 1, 1, 0, -1, -1, -1},
 								{-1,-1, 0, 1, 1,  1,  0, -1}	};
@@ -318,7 +319,7 @@ static int DirTab[2][8] ={		{ 0, 1, 1, 1, 0, -1, -1, -1},
 
 
 
-near BRivPlop()
+void near BRivPlop(void)
 {
 static int BRMatrix[9][9] ={
 		{0,0,0,3,3,3,0,0,0},
@@ -337,7 +338,7 @@ int x, y;
 			PutOnMap (BRMatrix[y][x], x, y);
 }
 
-near SRivPlop()
+void near SRivPlop(void)
 {
 static int SRMatrix[6][6] ={
 		{0,0,3,3,0,0},
@@ -353,16 +354,15 @@ int x, y;
 			PutOnMap (SRMatrix[y][x], x, y);
 }
 
-near PutOnMap (Mchar, Xoff, Yoff)
-int Mchar, Xoff, Yoff;
+int near PutOnMap (int Mchar, int Xoff, int Yoff)
 {
 register int Xloc, Yloc, temp;
 
-	if (Mchar == 0) return;
+	if (Mchar == 0) return TRUE;
 	Xloc = MapX + Xoff;
 	Yloc = MapY + Yoff;
 	if (TestBounds (Xloc, Yloc) == FALSE) return (FALSE);
-	if (temp = Map [Xloc][Yloc])	{
+	if ((temp = Map [Xloc][Yloc]))	{
 		temp = temp & 1023;
 		if (temp == RIVER) 
 			if (Mchar != CHANNEL)
@@ -370,10 +370,10 @@ register int Xloc, Yloc, temp;
 		if (temp == CHANNEL) return (FALSE);
 	}					
 	Map [Xloc][Yloc] = Mchar;	
+	return TRUE;
 }
 
-far TestBounds(x, y)
-register int x, y;
+int far TestBounds(int x, int y)
 {
 	if ((( x >= 0) && (x < WORLD_X)) && (( y >= 0) && (y < WORLD_Y)))
 		return (TRUE);

@@ -59,8 +59,14 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "g_map.h"
+#include "g_smmaps.h"
+#include "s_alloc.h"
+#include "view.h"
+#include "s_sim.h"
 #include "sim.h"
-
+#include <stdint.h>
+#include <assert.h>
 
 #define VAL_NONE	0
 #define VAL_LOW		1
@@ -83,23 +89,27 @@ short valGrayMap[] = {
 };
 
 
-int (*mapProcs[NMAPS])();
+void (*mapProcs[NMAPS])();
 
-int drawAll(SimView *view);
-int drawRes(SimView *view);
-int drawCom(SimView *view);
-int drawInd(SimView *view);
-int drawPower(SimView *view);
-int drawLilTransMap(SimView *view);
-int drawPopDensity(SimView *view);
-int drawRateOfGrowth(SimView *view);
-int drawTrafMap(SimView *view);
-int drawPolMap(SimView *view);
-int drawCrimeMap(SimView *view);
-int drawLandMap(SimView *view);
-int drawFireRadius(SimView *view);
-int drawPoliceRadius(SimView *view);
-int drawDynamic(SimView *view);
+void ditherMap(SimView *view);
+void drawAll(SimView *view);
+void drawRes(SimView *view);
+void drawCom(SimView *view);
+void drawInd(SimView *view);
+void drawPower(SimView *view);
+void drawLilTransMap(SimView *view);
+void drawPopDensity(SimView *view);
+void drawRateOfGrowth(SimView *view);
+void drawTrafMap(SimView *view);
+void drawPolMap(SimView *view);
+void drawCrimeMap(SimView *view);
+void drawLandMap(SimView *view);
+void drawFireRadius(SimView *view);
+void drawPoliceRadius(SimView *view);
+void maybeDrawRect(SimView *view, int val,
+	    int x, int y, int w, int h);
+void drawRect(SimView *view, int pixel, int solid,
+	 int x, int y, int w, int h);
 
 
 short GetCI(short x)
@@ -112,7 +122,7 @@ short GetCI(short x)
 }
 
 
-drawPopDensity(SimView *view)
+void drawPopDensity(SimView *view)
 {
   short x, y;
 
@@ -126,7 +136,7 @@ drawPopDensity(SimView *view)
 }
 
 
-drawRateOfGrowth(SimView *view)
+void drawRateOfGrowth(SimView *view)
 {
   short x, y;
 
@@ -153,7 +163,7 @@ drawRateOfGrowth(SimView *view)
 }
 
 
-drawTrafMap(SimView *view)
+void drawTrafMap(SimView *view)
 {
   short x;
   short y;
@@ -169,7 +179,7 @@ drawTrafMap(SimView *view)
 }
 
 
-drawPolMap(SimView *view)
+void drawPolMap(SimView *view)
 {
   short x, y;
 
@@ -184,7 +194,7 @@ drawPolMap(SimView *view)
 }
 
 
-drawCrimeMap(SimView *view)
+void drawCrimeMap(SimView *view)
 {
   short x, y;
 
@@ -199,7 +209,7 @@ drawCrimeMap(SimView *view)
 }
 
 
-drawLandMap(SimView *view)
+void drawLandMap(SimView *view)
 {
   short x, y;
 
@@ -214,7 +224,7 @@ drawLandMap(SimView *view)
 }
 
 
-drawFireRadius(SimView *view)
+void drawFireRadius(SimView *view)
 {
   short x, y;
 
@@ -228,7 +238,7 @@ drawFireRadius(SimView *view)
 }
 
 
-drawPoliceRadius(SimView *view)
+void drawPoliceRadius(SimView *view)
 {
   short x, y;
 
@@ -242,7 +252,7 @@ drawPoliceRadius(SimView *view)
 }
 
 
-setUpMapProcs(void)
+void setUpMapProcs(void)
 {
   mapProcs[ALMAP] = drawAll;
   mapProcs[REMAP] = drawRes;
@@ -262,7 +272,7 @@ setUpMapProcs(void)
 }
 
 
-MemDrawMap(SimView *view)
+void MemDrawMap(SimView *view)
 {
   (*mapProcs[view->map_state])(view);
   if (!view->x->color) {
@@ -275,7 +285,7 @@ MemDrawMap(SimView *view)
 }
 
 
-ditherMap(SimView *view)
+void ditherMap(SimView *view)
 {
   int i, x, y, width, height;
   int err, pixel1, pixel8;
@@ -346,7 +356,7 @@ ditherMap(SimView *view)
 }
 
 
-maybeDrawRect(SimView *view, int val,
+void maybeDrawRect(SimView *view, int val,
 	    int x, int y, int w, int h)
 {
   if (val == VAL_NONE) return;
@@ -359,7 +369,7 @@ maybeDrawRect(SimView *view, int val,
 }
 
 
-drawRect(SimView *view, int pixel, int solid,
+void drawRect(SimView *view, int pixel, int solid,
 	 int x, int y, int w, int h)
 {
   int W = view->m_width, H = view->m_height;
@@ -391,7 +401,7 @@ drawRect(SimView *view, int pixel, int solid,
     /* In the case of black and white, we use an 8 bit buffer and dither it. */
     int pixelBytes = 
       view->x->color ? view->pixel_bytes : 1;
-    QUAD line = 
+    int32_t line =
       view->x->color ? view->line_bytes : view->line_bytes8;
 
     unsigned char *image =

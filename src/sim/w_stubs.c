@@ -59,16 +59,26 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_stubs.h"
+#include "w_update.h"
+#include "w_tk.h"
+#include "w_util.h"
+#include "mac.h"
 #include "sim.h"
-
+#include "s_fileio.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 /* Stubs */
 
 
-QUAD TotalFunds;
+int32_t TotalFunds;
 short PunishCnt;
 short autoBulldoze, autoBudget;
-QUAD LastMesTime;
+int32_t LastMesTime;
 short GameLevel;
 short InitSimLoad;
 short ScenarioID;
@@ -81,14 +91,20 @@ short MesNum;
 short EvalChanged;
 short flagBlink;
 
+void DoPlayNewCity(void);
+void DoReallyStartGame(void);
+void DoStartLoad(void);
+void DoStartScenario(int scenario);
+void InitGame(void);
 
-Spend(int dollars)
+
+void Spend(int dollars)
 {
   SetFunds(TotalFunds - dollars);
 }
 
 
-SetFunds(int dollars)
+void SetFunds(int dollars)
 {
   TotalFunds = dollars;
   UpdateFunds();
@@ -97,13 +113,13 @@ SetFunds(int dollars)
 
 /* Mac */
 
-QUAD TickCount()
+int32_t TickCount()
 {
   struct timeval time;
 
   gettimeofday(&time, 0);
 
-  return (QUAD)((time.tv_sec / 60) + (time.tv_usec * 1000000 / 60));
+  return (int32_t)((time.tv_sec / 60) + (time.tv_usec * 1000000 / 60));
 }
 
 
@@ -117,7 +133,7 @@ int size;
 
 /* w_hlhandlers.c */
 
-GameStarted()
+void GameStarted(void)
 {
   InvalidateMaps();
   InvalidateEditors();
@@ -131,6 +147,7 @@ GameStarted()
       break;
     }
     StartupName = NULL;
+    //no break
   case -1:
     if (StartupName != NULL) {
       setCityName(StartupName);
@@ -150,25 +167,25 @@ GameStarted()
 }
 
 
-DoPlayNewCity()
+void DoPlayNewCity(void)
 {
   Eval("UIPlayNewCity");
 }
 
 
-DoReallyStartGame()
+void DoReallyStartGame(void)
 {
   Eval("UIReallyStartGame");
 }
 
 
-DoStartLoad()
+void DoStartLoad(void)
 {
   Eval("UIStartLoad");
 }
 
 
-DoStartScenario(int scenario)
+void DoStartScenario(int scenario)
 {
   char buf[256];
 
@@ -177,20 +194,20 @@ DoStartScenario(int scenario)
 }
 
 
-DropFireBombs()
+void DropFireBombs(void)
 {
   Eval("DropFireBombs");
 }
 
 
-InitGame()
+void InitGame(void)
 {
   sim_skips = sim_skip = sim_paused = sim_paused_speed = heat_steps = 0;
   setSpeed(0);
 }
 
 
-ReallyQuit()
+void ReallyQuit(void)
 {
   sim_exit(0); // Just sets tkMustExit and ExitReturn
 }

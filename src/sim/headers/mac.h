@@ -63,27 +63,23 @@
 #ifndef _Mac_
 #define _Mac_ 1
 
-#ifdef OSF1
-#define QUAD int
-#else
-#define QUAD long
-#endif
+#include <stdint.h>
+typedef int32_t QUAD;
+typedef uint8_t Byte;
+typedef void * Ptr;
+typedef void **Handle;
 
-typedef unsigned char Byte;
-typedef Byte * Ptr;
-typedef char **Handle;
-
-extern Ptr NewPtr();
-extern Handle GetResource();
-extern QUAD ResourceSize();
+extern void* NewPtr();
+extern void** GetResource();
+extern int32_t ResourceSize();
 extern char *ResourceName();
-extern QUAD ResourceID();
+extern int32_t ResourceID();
 
 struct Resource {
   char *buf;
-  QUAD size;
+  int32_t size;
   char name[4];
-  QUAD id;
+  int32_t id;
   struct Resource *next;
 };
 

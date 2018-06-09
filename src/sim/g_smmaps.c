@@ -59,7 +59,12 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "g_smmaps.h"
+#include "s_alloc.h"
+#include "view.h"
 #include "sim.h"
+#include <stdint.h>
+#include <assert.h>
 
 
 int DynamicData[32];
@@ -71,8 +76,8 @@ int DynamicData[32];
   short *mp; \
   unsigned char *imageBase; \
   unsigned char *image; \
-  unsigned QUAD *mem; \
-  unsigned QUAD l; \
+  uint32_t *mem; \
+  uint32_t l; \
   int lineBytes = view->line_bytes8; \
   int pixelBytes = view->pixel_bytes; \
   mp = &Map[0][0]; \
@@ -164,7 +169,7 @@ int DynamicData[32];
 	  }
 
 #define DRAW_END \
-      mem = (unsigned QUAD *)&view->smalltiles[tile * 4 * 4 * pixelBytes]; \
+      mem = (uint32_t *)&view->smalltiles[tile * 4 * 4 * pixelBytes]; \
       ROW3 \
     } \
   }
@@ -231,8 +236,8 @@ void drawPower(SimView *view)
   unsigned short tile;
   short *mp;
   unsigned char *image, *imageBase;
-  unsigned QUAD *mem;
-  unsigned QUAD l;
+  uint32_t *mem;
+  uint32_t l;
   int lineBytes = view->line_bytes8;
   int pixelBytes = view->pixel_bytes;
 
@@ -274,7 +279,7 @@ void drawPower(SimView *view)
       }
 
       if (pix < 0) {
-		mem = (unsigned QUAD *)&view->smalltiles[tile * 4 * 4 * pixelBytes];
+		mem = (uint32_t *)&view->smalltiles[tile * 4 * 4 * pixelBytes];
 		ROW3
       } else {
 		switch (view->x->depth) {
@@ -344,29 +349,29 @@ int dynamicFilter(int col, int row)
   c = col >>1;
 
   if (((DynamicData[0] > DynamicData[1]) ||
-       ((x = PopDensity[c][r])			>= DynamicData[0]) &&
-       (x								<= DynamicData[1])) &&
+       (((x = PopDensity[c][r])			>= DynamicData[0]) &&
+       (x								<= DynamicData[1]))) &&
       ((DynamicData[2] > DynamicData[3]) ||
-       ((x = RateOGMem[c>>2][r>>2])		>= ((2 * DynamicData[2]) - 256)) &&
-       (x								<= ((2 * DynamicData[3]) - 256))) &&
+       (((x = RateOGMem[c>>2][r>>2])		>= ((2 * DynamicData[2]) - 256)) &&
+       (x								<= ((2 * DynamicData[3]) - 256)))) &&
       ((DynamicData[4] > DynamicData[5]) ||
-       ((x = TrfDensity[c][r])			>= DynamicData[4]) &&
-       (x								<= DynamicData[5])) &&
+       (((x = TrfDensity[c][r])			>= DynamicData[4]) &&
+       (x								<= DynamicData[5]))) &&
       ((DynamicData[6] > DynamicData[7]) ||
-       ((x = PollutionMem[c][r])		>= DynamicData[6]) &&
-       (x								<= DynamicData[7])) &&
+       (((x = PollutionMem[c][r])		>= DynamicData[6]) &&
+       (x								<= DynamicData[7]))) &&
       ((DynamicData[8] > DynamicData[9]) ||
-       ((x = CrimeMem[c][r])			>= DynamicData[8]) &&
-       (x								<= DynamicData[9])) &&
+       (((x = CrimeMem[c][r])			>= DynamicData[8]) &&
+       (x								<= DynamicData[9]))) &&
       ((DynamicData[10] > DynamicData[11]) ||
-       ((x = LandValueMem[c][r])		>= DynamicData[10]) &&
-       (x								<= DynamicData[11])) &&
+       (((x = LandValueMem[c][r])		>= DynamicData[10]) &&
+       (x								<= DynamicData[11]))) &&
       ((DynamicData[12] > DynamicData[13]) ||
-       ((x = PoliceMapEffect[c>>2][r>>2]) >= DynamicData[12]) &&
-       (x								<= DynamicData[13])) &&
+       (((x = PoliceMapEffect[c>>2][r>>2]) >= DynamicData[12]) &&
+       (x								<= DynamicData[13]))) &&
       ((DynamicData[14] > DynamicData[15]) ||
-       ((x = FireRate[c>>2][r>>2])		>= DynamicData[14]) &&
-       (x								<= DynamicData[15]))) {
+       (((x = FireRate[c>>2][r>>2])		>= DynamicData[14]) &&
+       (x								<= DynamicData[15])))) {
     return 1;
   } else {
     return 0;

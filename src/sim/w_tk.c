@@ -59,7 +59,24 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_tk.h"
+#include "w_date.h"
+#include "w_editor.h"
+#include "w_graph.h"
+#include "w_map.h"
+#include "w_resrc.h"
+#include "w_sim.h"
+#include "w_sound.h"
+#include "w_sprite.h"
+#include "w_stubs.h"
+#include "w_x.h"
+#include "s_disast.h"
+#include <tk.h>
+#include <tcl.h>
+#include <tclxtend.h>
 #include "sim.h"
+#include "view.h"
+#include <stdio.h>
 
 #ifdef MSDOS
 #define filename2UNIX(name)	\
@@ -103,29 +120,35 @@ Tk_ConfigSpec TileViewConfigSpecs[] = {
 };
 
 
-int TileViewCmd(CLIENT_ARGS);
+int TileViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
 int ConfigureTileView(Tcl_Interp *interp, SimView *view,
 		      int argc, char **argv, int flags);
 static void TileViewEventProc(ClientData clientData, XEvent *eventPtr);
 static void DestroyTileView(ClientData clientData);
 
+#if 0
 int ConfigureSimGraph(Tcl_Interp *interp, SimGraph *graph,
 		      int argc, char **argv, int flags);
+#endif
 
 static void MicropolisTimerProc(ClientData clientData);
 
-int SimCmd(CLIENT_ARGS);
-int DoEditorCmd(CLIENT_ARGS);
-int DoMapCmd(CLIENT_ARGS);
-int GraphViewCmd(CLIENT_ARGS);
-int DoGraphCmd(CLIENT_ARGS);
-int SpriteCmd(CLIENT_ARGS);
+#if 0
+int SimCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+#endif
+int DoEditorCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+int DoMapCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+#if 0
+int GraphViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+int DoGraphCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+int SpriteCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
+#endif
 extern int Tk_PieMenuCmd();
 extern int Tk_IntervalCmd();
 
 
 int
-TileViewCmd(CLIENT_ARGS)
+TileViewCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   Tk_Window tkwin = (Tk_Window) clientData;
   SimView *view;
@@ -241,7 +264,7 @@ ConfigureTileView(Tcl_Interp *interp, SimView *view,
 }
 
 
-InvalidateMaps()
+void InvalidateMaps(void)
 {
   SimView *view;
 
@@ -255,7 +278,7 @@ InvalidateMaps()
 }
 
 
-InvalidateEditors()
+void InvalidateEditors(void)
 {
   SimView *view;
 
@@ -269,7 +292,7 @@ InvalidateEditors()
 }
 
 
-RedrawMaps()
+void RedrawMaps(void)
 {
   SimView *view;
 
@@ -283,7 +306,7 @@ RedrawMaps()
 }
 
 
-RedrawEditors()
+void RedrawEditors(void)
 {
   SimView *view;
 
@@ -334,7 +357,7 @@ DisplayTileView(ClientData clientData)
     EraserTo
  */
 
-EventuallyRedrawView(SimView *view)
+void EventuallyRedrawView(SimView *view)
 {
   if (!(view->flags & VIEW_REDRAW_PENDING)) {
     Tk_DoWhenIdle(DisplayTileView, (ClientData) view);
@@ -344,7 +367,7 @@ EventuallyRedrawView(SimView *view)
 }
 
 
-CancelRedrawView(SimView *view)
+void CancelRedrawView(SimView *view)
 {
   if (view->flags & VIEW_REDRAW_PENDING) {
     Tk_CancelIdleCall(DisplayTileView, (ClientData) view);
@@ -547,6 +570,7 @@ StructureProc(ClientData clientData, XEvent *eventPtr)
 }
 
 
+#if 0
 static void
 DelayedMap(ClientData clientData)
 {
@@ -558,9 +582,10 @@ DelayedMap(ClientData clientData)
   }
   Tk_MapWindow(MainWindow);
 }
+#endif
 
 
-DidStopPan(SimView *view)
+void DidStopPan(SimView *view)
 {
   char buf[256];
   sprintf(buf, "UIDidStopPan %s", Tk_PathName(view->tkwin));
@@ -621,7 +646,7 @@ ReallyStartMicropolisTimer(ClientData clientData)
 }
 
 
-StartMicropolisTimer()
+void StartMicropolisTimer(void)
 {
   if (sim_timer_idle == 0) {
     sim_timer_idle = 1;
@@ -632,7 +657,7 @@ StartMicropolisTimer()
 }
 
 
-StopMicropolisTimer()
+void StopMicropolisTimer(void)
 {
   if (sim_timer_idle != 0) {
     sim_timer_idle = 0;
@@ -651,10 +676,10 @@ StopMicropolisTimer()
 }
 
 
-FixMicropolisTimer()
+void FixMicropolisTimer(void)
 {
   if (sim_timer_set) {
-    StartMicropolisTimer(NULL);
+    StartMicropolisTimer();
   }
 }
 
@@ -669,7 +694,7 @@ DelayedUpdate(ClientData clientData)
 }
 
 
-Kick()
+void Kick(void)
 {
   if (!UpdateDelayed) {
     UpdateDelayed = 1;
@@ -679,7 +704,7 @@ Kick()
 
 
 void
-StopEarthquake()
+StopEarthquake(void)
 {
   ShakeNow = 0;
   if (earthquake_timer_set) {
@@ -689,7 +714,7 @@ StopEarthquake()
 }
 
 
-DoEarthQuake(void)
+void DoEarthQuake(void)
 {
   MakeSound("city", "Explosion-Low");
   Eval("UIEarthQuake");
@@ -702,7 +727,7 @@ DoEarthQuake(void)
 }
 
 
-StopToolkit()
+void StopToolkit(void)
 {
   if (tk_mainInterp != NULL) {
     Eval("catch {DoStopMicropolis}");
@@ -710,7 +735,7 @@ StopToolkit()
 }
 
 
-Eval(char *buf)
+int Eval(char *buf)
 {
   int result = Tcl_Eval(tk_mainInterp, buf, 0, (char **) NULL);
   if (result != TCL_OK) {
@@ -724,7 +749,7 @@ Eval(char *buf)
 }
 
 
-tk_main()
+void tk_main(void)
 {
   char *p, *msg;
   char buf[20];

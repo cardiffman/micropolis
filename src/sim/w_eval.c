@@ -59,8 +59,13 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
-
+//#include "sim.h"
+#include "w_eval.h"
+#include "w_util.h"
+#include "w_stubs.h"
+#include "w_tk.h"
+#include "s_eval.h"
+#include <stdio.h>
 
 char *cityClassStr[6] = {
   "VILLAGE", "TOWN", "CITY", "CAPITAL", "METROPOLIS", "MEGALOPOLIS"
@@ -75,9 +80,15 @@ char *probStr[10] = {
   "TRAFFIC", "UNEMPLOYMENT", "FIRES"
 };
 
+void SetEvaluation(char *changed, char *score,
+	      char *ps0, char *ps1, char *ps2, char *ps3,
+	      char *pv0, char *pv1, char *pv2, char *pv3,
+	      char *pop, char *delta, char *assessed_dollars,
+	      char *cityclass, char *citylevel,
+	      char *goodyes, char *goodno, char *title);
 
 /* comefrom: DoSubUpDate scoreDoer */
-doScoreCard(void)
+void doScoreCard(void)
 {
   char title[256],
   goodyes[32], goodno[32],
@@ -126,13 +137,13 @@ doScoreCard(void)
 }
 
 
-ChangeEval()
+void ChangeEval(void)
 {
   EvalChanged = 1;
 }
 
 
-scoreDoer(void)
+void scoreDoer(void)
 {
   if (EvalChanged) {
     doScoreCard();
@@ -141,7 +152,7 @@ scoreDoer(void)
 }
 
 
-SetEvaluation(char *changed, char *score,
+void SetEvaluation(char *changed, char *score,
 	      char *ps0, char *ps1, char *ps2, char *ps3,
 	      char *pv0, char *pv1, char *pv2, char *pv3,
 	      char *pop, char *delta, char *assessed_dollars,

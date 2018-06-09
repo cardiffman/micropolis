@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
+#include "rand.h"
 #include "sim.h"
 
 #include <sys/types.h>
@@ -38,10 +38,10 @@
 
 #define SIM_RAND_MAX 0xffff
 
-static unsigned QUAD next = 1;
+static uint32_t next = 1;
 
 int
-sim_rand()
+sim_rand(void)
 {
 	next = next * 1103515245 + 12345;
 	return ((next % ((SIM_RAND_MAX + 1) <<8)) >>8);

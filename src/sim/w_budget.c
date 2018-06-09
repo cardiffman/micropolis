@@ -59,22 +59,36 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
-#include "sim.h"
-
+//#include "sim.h"
+#include "w_budget.h"
+#include "w_stubs.h"
+#include "w_tk.h"
+#include "w_update.h"
+#include "w_util.h"
+#include "s_alloc.h"
+#include "s_msg.h"
+#include <stdint.h>
+#include <stdio.h>
 
 float roadPercent = 0.0;
 float policePercent = 0.0;
 float firePercent = 0.0;
-QUAD roadValue;
-QUAD policeValue;
-QUAD fireValue;
-QUAD roadMaxValue;
-QUAD policeMaxValue;
-QUAD fireMaxValue;
+int32_t roadValue;
+int32_t policeValue;
+int32_t fireValue;
+int32_t roadMaxValue;
+int32_t policeMaxValue;
+int32_t fireMaxValue;
 int MustDrawCurrPercents = 0;
 int MustDrawBudgetWindow = 0;
-int SetBudget(char *flowStr, char *previousStr,
+void SetBudget(char *flowStr, char *previousStr,
 	      char *currentStr, char *collectedStr, short tax);
+void SetBudgetValues(char *roadGot, char *roadWant,
+		char *policeGot, char *policeWant,
+		char *fireGot, char *fireWant);
+void drawBudgetWindow(void);
+void DoBudgetNow(int fromMenu);
+void ShowBudgetWindowAndStartWaiting(void);
 
 
 void InitFundingLevel(void)
@@ -90,24 +104,24 @@ void InitFundingLevel(void)
 }
 
 
-DoBudget()
+void DoBudget(void)
 {
   DoBudgetNow(0);
 }
 
 
-DoBudgetFromMenu()
+void DoBudgetFromMenu(void)
 {
   DoBudgetNow(1);
 }
 
 
-DoBudgetNow(int fromMenu)
+void DoBudgetNow(int fromMenu)
 {
-  QUAD yumDuckets;
-  QUAD total;
-  QUAD moreDough;
-  QUAD fireInt, policeInt, roadInt;
+  int32_t yumDuckets;
+  int32_t total;
+  int32_t moreDough;
+  int32_t fireInt, policeInt, roadInt;
 
   fireInt = (int)(((float)FireFund) * firePercent);
   policeInt = (int)(((float)PoliceFund) * policePercent);
@@ -190,7 +204,7 @@ DoBudgetNow(int fromMenu)
       RoadSpend = roadValue;
 
       total = FireSpend + PoliceSpend + RoadSpend;
-      moreDough = (QUAD)(TaxFund - total);
+      moreDough = (int32_t)(TaxFund - total);
       Spend(-moreDough);
     }
     drawBudgetWindow();
@@ -199,7 +213,7 @@ DoBudgetNow(int fromMenu)
 
   } else { /* autoBudget & !fromMenu */
     if ((yumDuckets) > total) {
-      moreDough = (QUAD)(TaxFund - total);
+      moreDough = (int32_t)(TaxFund - total);
       Spend(-moreDough);
       FireSpend = FireFund;
       PoliceSpend = PoliceFund;
@@ -218,13 +232,13 @@ DoBudgetNow(int fromMenu)
 }
 
 
-drawBudgetWindow(void)
+void drawBudgetWindow(void)
 {
   MustDrawBudgetWindow = 1;
 }
 
 
-ReallyDrawBudgetWindow(void)
+void ReallyDrawBudgetWindow(void)
 {
   short cashFlow, cashFlow2;
   char numStr[256], dollarStr[256], collectedStr[256],
@@ -257,13 +271,13 @@ ReallyDrawBudgetWindow(void)
 }
 
 
-drawCurrPercents(void)
+void drawCurrPercents(void)
 {
   MustDrawCurrPercents = 1;
 }
 
 
-ReallyDrawCurrPercents(void)
+void ReallyDrawCurrPercents(void)
 {
   char num[256];
   char fireWant[256], policeWant[256], roadWant[256];
@@ -293,7 +307,7 @@ ReallyDrawCurrPercents(void)
 }
 
 
-UpdateBudgetWindow()
+void UpdateBudgetWindow(void)
 {
   if (MustDrawCurrPercents) {
     ReallyDrawCurrPercents();
@@ -306,7 +320,7 @@ UpdateBudgetWindow()
 }
 
 
-UpdateBudget()
+void UpdateBudget(void)
 {
   drawCurrPercents();
   drawBudgetWindow();
@@ -314,7 +328,7 @@ UpdateBudget()
 }
 
 
-ShowBudgetWindowAndStartWaiting()
+void ShowBudgetWindowAndStartWaiting(void)
 {
   Eval("UIShowBudgetAndWait");
 
@@ -322,7 +336,7 @@ ShowBudgetWindowAndStartWaiting()
 }
 
 
-SetBudget(char *flowStr, char *previousStr,
+void SetBudget(char *flowStr, char *previousStr,
 	  char *currentStr, char *collectedStr, short tax)
 {
   char buf[256];
@@ -333,7 +347,7 @@ SetBudget(char *flowStr, char *previousStr,
 }
 
 
-SetBudgetValues(char *roadGot, char *roadWant,
+void SetBudgetValues(char *roadGot, char *roadWant,
 		char *policeGot, char *policeWant,
 		char *fireGot, char *fireWant)
 {

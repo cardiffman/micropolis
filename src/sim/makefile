@@ -7,7 +7,7 @@ TKLIBRARY = /usr/local/lib/tk
 
 CC = gcc
 
-OPTFLAGS = -O3
+OPTFLAGS = -O3 -Werror
 #OPTFLAGS = -g
 
 #DEFINES = -DIS_LINUX -DIS_INTEL -DCAM -DNET

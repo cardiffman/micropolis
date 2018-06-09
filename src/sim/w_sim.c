@@ -59,20 +59,47 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_sim.h"
 #include "sim.h"
-
+#include <tcl.h>
+#include "macros.h"
+#include <tclhash.h>
+#include <stdio.h>
+#include "w_tk.h"
+#include "w_budget.h"
+#include "w_stubs.h"
+#include "w_editor.h"
+#include "w_sound.h"
+#include "w_tool.h"
+#include "w_update.h"
+#include "w_util.h"
+#include "w_sprite.h"
+#include "w_x.h"
+#include "s_alloc.h"
+#include "s_disast.h"
+#include "s_eval.h"
+#include "s_fileio.h"
+#include "s_gen.h"
+#include "s_sim.h"
+#include "s_scan.h"
+#include "s_traf.h"
+#include "s_msg.h"
+#include "g_smmaps.h"
+#include "view.h"
+#include <string.h>
+#include <stdlib.h>
 
 Tcl_HashTable SimCmds;
 
 
 #define SIMCMD_CALL(proc) \
-  int SimCmd##proc(ARGS) { proc(); return (TCL_OK); }
+  int SimCmd##proc(Tcl_Interp *interp, int argc, char **argv) { proc(); return (TCL_OK); }
 
 #define SIMCMD_CALL_KICK(proc) \
-  int SimCmd##proc(ARGS) { proc(); Kick(); return (TCL_OK); }
+  int SimCmd##proc(Tcl_Interp *interp, int argc, char **argv) { proc(); Kick(); return (TCL_OK); }
 
 #define SIMCMD_CALL_INT(proc) \
-  int SimCmd##proc(ARGS) { \
+  int SimCmd##proc(Tcl_Interp *interp, int argc, char **argv) { \
     int val; \
     if (argc != 3) return (TCL_ERROR); \
     if ((Tcl_GetInt(interp, argv[2], &val) != TCL_OK)) return (TCL_ERROR); \
@@ -81,14 +108,14 @@ Tcl_HashTable SimCmds;
   }
 
 #define SIMCMD_CALL_STR(proc) \
-  int SimCmd##proc(ARGS) { \
+  int SimCmd##proc(Tcl_Interp *interp, int argc, char **argv) { \
     if (argc != 3) return (TCL_ERROR); \
     proc(argv[2]); \
     return (TCL_OK); \
   }
 
 #define SIMCMD_CALL_TILEXY(proc) \
-  int SimCmd##proc(ARGS) { \
+  int SimCmd##proc(Tcl_Interp *interp, int argc, char **argv) { \
     int x, y; \
     if (argc != 4) return (TCL_ERROR); \
     if ((Tcl_GetInt(interp, argv[2], &x) != TCL_OK) || \
@@ -100,7 +127,7 @@ Tcl_HashTable SimCmds;
   }
 
 #define SIMCMD_ACCESS_INT(var) \
-  int SimCmd##var(ARGS) { \
+  int SimCmd##var(Tcl_Interp *interp, int argc, char **argv) { \
     int val; \
     if ((argc != 2) && (argc != 3)) return (TCL_ERROR); \
     if (argc == 3) { \
@@ -112,13 +139,13 @@ Tcl_HashTable SimCmds;
   }
 
 #define SIMCMD_GET_INT(var) \
-  int SimCmd##var(ARGS) { \
+  int SimCmd##var(Tcl_Interp *interp, int argc, char **argv) { \
     sprintf(interp->result, "%d", var); \
     return (TCL_OK); \
   }
 
 #define SIMCMD_GET_STR(var) \
-  int SimCmd##var(ARGS) { \
+  int SimCmd##var(Tcl_Interp *interp, int argc, char **argv) { \
     sprintf(interp->result, "%s", var); \
     return (TCL_OK); \
   }
@@ -178,7 +205,7 @@ SIMCMD_ACCESS_INT(PendingY)
 SIMCMD_GET_STR(Displays)
 
 
-int SimCmdCityName(ARGS)
+int SimCmdCityName(Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return (TCL_ERROR);
@@ -193,7 +220,7 @@ int SimCmdCityName(ARGS)
 }
 
 
-int SimCmdCityFileName(ARGS)
+int SimCmdCityFileName(Tcl_Interp *interp, int argc, char **argv)
 {
   if ((argc != 2) && (argc != 3)) {
     return (TCL_ERROR);
@@ -215,7 +242,7 @@ int SimCmdCityFileName(ARGS)
 }
 
 
-int SimCmdGameLevel(ARGS)
+int SimCmdGameLevel(Tcl_Interp *interp, int argc, char **argv)
 {
   int level;
 
@@ -236,7 +263,7 @@ int SimCmdGameLevel(ARGS)
 }
 
 
-int SimCmdSpeed(ARGS)
+int SimCmdSpeed(Tcl_Interp *interp, int argc, char **argv)
 {
   int speed;
 
@@ -257,7 +284,7 @@ int SimCmdSpeed(ARGS)
 }
 
 
-int SimCmdSkips(ARGS)
+int SimCmdSkips(Tcl_Interp *interp, int argc, char **argv)
 {
   int skips;
 
@@ -279,7 +306,7 @@ int SimCmdSkips(ARGS)
 }
 
 
-int SimCmdSkip(ARGS)
+int SimCmdSkip(Tcl_Interp *interp, int argc, char **argv)
 {
   int skip;
 
@@ -301,7 +328,7 @@ int SimCmdSkip(ARGS)
 }
 
 
-int SimCmdDelay(ARGS)
+int SimCmdDelay(Tcl_Interp *interp, int argc, char **argv)
 {
   int delay;
 
@@ -322,7 +349,7 @@ int SimCmdDelay(ARGS)
 }
 
 
-int SimCmdWorldX(ARGS)
+int SimCmdWorldX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -335,7 +362,7 @@ int SimCmdWorldX(ARGS)
 }
 
 
-int SimCmdWorldY(ARGS)
+int SimCmdWorldY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -348,7 +375,7 @@ int SimCmdWorldY(ARGS)
 }
 
 
-int SimCmdHeatSteps(ARGS)
+int SimCmdHeatSteps(Tcl_Interp *interp, int argc, char **argv)
 {
   int steps;
 
@@ -369,7 +396,7 @@ int SimCmdHeatSteps(ARGS)
 }
 
 
-int SimCmdHeatFlow(ARGS)
+int SimCmdHeatFlow(Tcl_Interp *interp, int argc, char **argv)
 {
   int flow;
 
@@ -389,7 +416,7 @@ int SimCmdHeatFlow(ARGS)
 }
 
 
-int SimCmdHeatRule(ARGS)
+int SimCmdHeatRule(Tcl_Interp *interp, int argc, char **argv)
 {
   int rule;
 
@@ -411,7 +438,7 @@ int SimCmdHeatRule(ARGS)
 
 #ifdef CAM
 
-int SimCmdJustCam(ARGS)
+int SimCmdJustCam(Tcl_Interp *interp, int argc, char **argv)
 {
   int cam;
 
@@ -435,7 +462,7 @@ int SimCmdJustCam(ARGS)
 
 #ifdef NET
 
-int SimCmdListenTo(ARGS)
+int SimCmdListenTo(Tcl_Interp *interp, int argc, char **argv)
 {
   int port, sock;
 
@@ -457,7 +484,7 @@ int SimCmdListenTo(ARGS)
 }
 
 
-int SimCmdHearFrom(ARGS)
+int SimCmdHearFrom(Tcl_Interp *interp, int argc, char **argv)
 {
   int sock;
 
@@ -483,7 +510,7 @@ int SimCmdHearFrom(ARGS)
 #endif /* NET */
 
 
-int SimCmdFunds(ARGS)
+int SimCmdFunds(Tcl_Interp *interp, int argc, char **argv)
 {
   int funds;
 
@@ -506,7 +533,7 @@ int SimCmdFunds(ARGS)
 }
 
 
-int SimCmdTaxRate(ARGS)
+int SimCmdTaxRate(Tcl_Interp *interp, int argc, char **argv)
 {
   int tax;
 
@@ -528,7 +555,7 @@ int SimCmdTaxRate(ARGS)
 }
 
 
-int SimCmdFireFund(ARGS)
+int SimCmdFireFund(Tcl_Interp *interp, int argc, char **argv)
 {
   int percent;
 
@@ -551,7 +578,7 @@ int SimCmdFireFund(ARGS)
 }
 
 
-int SimCmdPoliceFund(ARGS)
+int SimCmdPoliceFund(Tcl_Interp *interp, int argc, char **argv)
 {
   int percent;
 
@@ -574,7 +601,7 @@ int SimCmdPoliceFund(ARGS)
 }
 
 
-int SimCmdRoadFund(ARGS)
+int SimCmdRoadFund(Tcl_Interp *interp, int argc, char **argv)
 {
   int percent;
 
@@ -597,7 +624,7 @@ int SimCmdRoadFund(ARGS)
 }
 
 
-int SimCmdYear(ARGS)
+int SimCmdYear(Tcl_Interp *interp, int argc, char **argv)
 {
   int year;
 
@@ -617,7 +644,7 @@ int SimCmdYear(ARGS)
 }
 
 
-int SimCmdAutoBudget(ARGS)
+int SimCmdAutoBudget(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -640,7 +667,7 @@ int SimCmdAutoBudget(ARGS)
 }
 
 
-int SimCmdAutoGoto(ARGS)
+int SimCmdAutoGoto(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -662,7 +689,7 @@ int SimCmdAutoGoto(ARGS)
 }
 
 
-int SimCmdAutoBulldoze(ARGS)
+int SimCmdAutoBulldoze(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -684,7 +711,7 @@ int SimCmdAutoBulldoze(ARGS)
 }
 
 
-int SimCmdDisasters(ARGS)
+int SimCmdDisasters(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -706,7 +733,7 @@ int SimCmdDisasters(ARGS)
 }
 
 
-int SimCmdSound(ARGS)
+int SimCmdSound(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -728,7 +755,7 @@ int SimCmdSound(ARGS)
 }
 
 
-int SimCmdFlush(ARGS)
+int SimCmdFlush(Tcl_Interp *interp, int argc, char **argv)
 {
   int style;
 
@@ -740,7 +767,7 @@ int SimCmdFlush(ARGS)
 }
 
 
-int SimCmdFlushStyle(ARGS)
+int SimCmdFlushStyle(Tcl_Interp *interp, int argc, char **argv)
 {
   int style;
 
@@ -761,7 +788,7 @@ int SimCmdFlushStyle(ARGS)
 }
 
 
-int SimCmdDonDither(ARGS)
+int SimCmdDonDither(Tcl_Interp *interp, int argc, char **argv)
 {
   int dd;
 
@@ -782,7 +809,7 @@ int SimCmdDonDither(ARGS)
 }
 
 
-int SimCmdDoOverlay(ARGS)
+int SimCmdDoOverlay(Tcl_Interp *interp, int argc, char **argv)
 {
   int dd;
 
@@ -803,7 +830,7 @@ int SimCmdDoOverlay(ARGS)
 }
 
 
-int SimCmdMonsterGoal(ARGS)
+int SimCmdMonsterGoal(Tcl_Interp *interp, int argc, char **argv)
 {
   SimSprite *sprite;
   int x, y;
@@ -832,7 +859,7 @@ int SimCmdMonsterGoal(ARGS)
 }
 
 
-int SimCmdHelicopterGoal(ARGS)
+int SimCmdHelicopterGoal(Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y;
   SimSprite *sprite;
@@ -861,7 +888,7 @@ int SimCmdHelicopterGoal(ARGS)
 }
 
 
-int SimCmdMonsterDirection(ARGS)
+int SimCmdMonsterDirection(Tcl_Interp *interp, int argc, char **argv)
 {
   int dir;
   SimSprite *sprite;
@@ -886,7 +913,7 @@ int SimCmdMonsterDirection(ARGS)
 }
 
 
-int SimCmdTile(ARGS)
+int SimCmdTile(Tcl_Interp *interp, int argc, char **argv)
 {
   int x, y, tile;
 
@@ -912,7 +939,7 @@ int SimCmdTile(ARGS)
 }
 
 
-int SimCmdFill(ARGS)
+int SimCmdFill(Tcl_Interp *interp, int argc, char **argv)
 {
   int tile, x, y;
 
@@ -932,7 +959,7 @@ int SimCmdFill(ARGS)
 }
 
 
-int SimCmdDynamicData(ARGS)
+int SimCmdDynamicData(Tcl_Interp *interp, int argc, char **argv)
 {
   int index, val;
 
@@ -962,7 +989,7 @@ int SimCmdDynamicData(ARGS)
 }
 
 
-int SimCmdResetDynamic(ARGS)
+int SimCmdResetDynamic(Tcl_Interp *interp, int argc, char **argv)
 {
   int i;
 
@@ -975,7 +1002,7 @@ int SimCmdResetDynamic(ARGS)
 }
 
 
-int SimCmdPerformance(ARGS)
+int SimCmdPerformance(Tcl_Interp *interp, int argc, char **argv)
 {
   SimView *view;
 
@@ -989,7 +1016,7 @@ int SimCmdPerformance(ARGS)
 }
 
 
-int SimCmdCollapseMotion(ARGS)
+int SimCmdCollapseMotion(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1009,14 +1036,14 @@ int SimCmdCollapseMotion(ARGS)
 }
 
 
-int SimCmdUpdate(ARGS)
+int SimCmdUpdate(Tcl_Interp *interp, int argc, char **argv)
 {
   sim_update();
   return (TCL_OK);
 }
 
 
-int SimCmdLandValue(ARGS)
+int SimCmdLandValue(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1029,7 +1056,7 @@ int SimCmdLandValue(ARGS)
 }
 
 
-int SimCmdTraffic(ARGS)
+int SimCmdTraffic(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1042,7 +1069,7 @@ int SimCmdTraffic(ARGS)
 }
 
 
-int SimCmdCrime(ARGS)
+int SimCmdCrime(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1055,7 +1082,7 @@ int SimCmdCrime(ARGS)
 }
 
 
-int SimCmdUnemployment(ARGS)
+int SimCmdUnemployment(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1068,7 +1095,7 @@ int SimCmdUnemployment(ARGS)
 }
 
 
-int SimCmdFires(ARGS)
+int SimCmdFires(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1081,7 +1108,7 @@ int SimCmdFires(ARGS)
 }
 
 
-int SimCmdPollution(ARGS)
+int SimCmdPollution(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1094,7 +1121,7 @@ int SimCmdPollution(ARGS)
 }
 
 
-int SimCmdPolMaxX(ARGS)
+int SimCmdPolMaxX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1107,7 +1134,7 @@ int SimCmdPolMaxX(ARGS)
 }
 
 
-int SimCmdPolMaxY(ARGS)
+int SimCmdPolMaxY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1120,7 +1147,7 @@ int SimCmdPolMaxY(ARGS)
 }
 
 
-int SimCmdTrafMaxX(ARGS)
+int SimCmdTrafMaxX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1133,7 +1160,7 @@ int SimCmdTrafMaxX(ARGS)
 }
 
 
-int SimCmdTrafMaxY(ARGS)
+int SimCmdTrafMaxY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1146,7 +1173,7 @@ int SimCmdTrafMaxY(ARGS)
 }
 
 
-int SimCmdMeltX(ARGS)
+int SimCmdMeltX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1159,7 +1186,7 @@ int SimCmdMeltX(ARGS)
 }
 
 
-int SimCmdMeltY(ARGS)
+int SimCmdMeltY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1172,7 +1199,7 @@ int SimCmdMeltY(ARGS)
 }
 
 
-int SimCmdCrimeMaxX(ARGS)
+int SimCmdCrimeMaxX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1185,7 +1212,7 @@ int SimCmdCrimeMaxX(ARGS)
 }
 
 
-int SimCmdCrimeMaxY(ARGS)
+int SimCmdCrimeMaxY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1198,7 +1225,7 @@ int SimCmdCrimeMaxY(ARGS)
 }
 
 
-int SimCmdCenterX(ARGS)
+int SimCmdCenterX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1211,7 +1238,7 @@ int SimCmdCenterX(ARGS)
 }
 
 
-int SimCmdCenterY(ARGS)
+int SimCmdCenterY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1224,7 +1251,7 @@ int SimCmdCenterY(ARGS)
 }
 
 
-int SimCmdFloodX(ARGS)
+int SimCmdFloodX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1237,7 +1264,7 @@ int SimCmdFloodX(ARGS)
 }
 
 
-int SimCmdFloodY(ARGS)
+int SimCmdFloodY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1250,7 +1277,7 @@ int SimCmdFloodY(ARGS)
 }
 
 
-int SimCmdCrashX(ARGS)
+int SimCmdCrashX(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1263,7 +1290,7 @@ int SimCmdCrashX(ARGS)
 }
 
 
-int SimCmdCrashY(ARGS)
+int SimCmdCrashY(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1276,7 +1303,7 @@ int SimCmdCrashY(ARGS)
 }
 
 
-int SimCmdDollars(ARGS)
+int SimCmdDollars(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1289,7 +1316,7 @@ int SimCmdDollars(ARGS)
 }
 
 
-int SimCmdDoAnimation(ARGS)
+int SimCmdDoAnimation(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1310,7 +1337,7 @@ int SimCmdDoAnimation(ARGS)
 }
 
 
-int SimCmdDoMessages(ARGS)
+int SimCmdDoMessages(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1331,7 +1358,7 @@ int SimCmdDoMessages(ARGS)
 }
 
 
-int SimCmdDoNotices(ARGS)
+int SimCmdDoNotices(Tcl_Interp *interp, int argc, char **argv)
 {
   int val;
 
@@ -1352,7 +1379,7 @@ int SimCmdDoNotices(ARGS)
 }
 
 
-int SimCmdRand(ARGS)
+int SimCmdRand(Tcl_Interp *interp, int argc, char **argv)
 {
   int val, r;
 
@@ -1374,7 +1401,7 @@ int SimCmdRand(ARGS)
 }
 
 
-int SimCmdPlatform(ARGS)
+int SimCmdPlatform(Tcl_Interp *interp, int argc, char **argv)
 {
 
 #ifdef MSDOS
@@ -1387,7 +1414,7 @@ int SimCmdPlatform(ARGS)
 }
 
 
-int SimCmdVersion(ARGS)
+int SimCmdVersion(Tcl_Interp *interp, int argc, char **argv)
 {
   sprintf(interp->result, MicropolisVersion);
 
@@ -1395,7 +1422,7 @@ int SimCmdVersion(ARGS)
 }
 
 
-int SimCmdOpenWebBrowser(ARGS)
+int SimCmdOpenWebBrowser(Tcl_Interp *interp, int argc, char **argv)
 {
   int result = 1;
   char buf[512];
@@ -1417,7 +1444,7 @@ int SimCmdOpenWebBrowser(ARGS)
 }
 
 
-int SimCmdQuoteURL(ARGS)
+int SimCmdQuoteURL(Tcl_Interp *interp, int argc, char **argv)
 {
   int result = 1;
   char buf[2048];
@@ -1462,7 +1489,7 @@ int SimCmdQuoteURL(ARGS)
 }
 
 
-int SimCmdNeedRest(ARGS)
+int SimCmdNeedRest(Tcl_Interp *interp, int argc, char **argv)
 {
   int needRest;
 
@@ -1482,7 +1509,7 @@ int SimCmdNeedRest(ARGS)
 }
 
 
-int SimCmdMultiPlayerMode(ARGS)
+int SimCmdMultiPlayerMode(Tcl_Interp *interp, int argc, char **argv)
 {
   /* This is read-only because it's specified on
      the command line and effects how the user 
@@ -1497,7 +1524,7 @@ int SimCmdMultiPlayerMode(ARGS)
 }
 
 
-int SimCmdSugarMode(ARGS)
+int SimCmdSugarMode(Tcl_Interp *interp, int argc, char **argv)
 {
   /* This is read-only because it's specified on
      the command line and effects how the user 
@@ -1515,7 +1542,7 @@ int SimCmdSugarMode(ARGS)
 /************************************************************************/
 
 int
-SimCmd(CLIENT_ARGS)
+SimCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
   Tcl_HashEntry *ent;
   int result = TCL_OK;
@@ -1525,7 +1552,7 @@ SimCmd(CLIENT_ARGS)
     return TCL_ERROR;
   }
 
-  if (ent = Tcl_FindHashEntry(&SimCmds, argv[1])) {
+  if ((ent = Tcl_FindHashEntry(&SimCmds, argv[1]))) {
     cmd = (int (*)())ent->clientData;
     result = cmd(interp, argc, argv);
   } else {
@@ -1535,7 +1562,7 @@ SimCmd(CLIENT_ARGS)
 }
 
 
-sim_command_init()
+void sim_command_init(void)
 {
   int new;
 

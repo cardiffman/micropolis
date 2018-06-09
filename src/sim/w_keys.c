@@ -59,8 +59,17 @@
  * CONSUMER, SO SOME OR ALL OF THE ABOVE EXCLUSIONS AND LIMITATIONS MAY
  * NOT APPLY TO YOU.
  */
+#include "w_stubs.h"
+#include "w_sound.h"
+#include "w_sprite.h"
+#include "w_tk.h"
+#include "w_tool.h"
+#include "s_disast.h"
+#include "s_sim.h"
+#include "s_alloc.h"
+#include "view.h"
 #include "sim.h"
-
+#include <ctype.h>
 
 static char LastKeys[5];
 
@@ -79,7 +88,7 @@ static char LastKeys[5];
 */
 
 
-ResetLastKeys()
+void ResetLastKeys(void)
 {
   LastKeys[0] = ' ';
   LastKeys[1] = ' ';
@@ -91,7 +100,7 @@ ResetLastKeys()
 
 
 /* comefrom: processEvent */
-doKeyDown(SimView *view, short charCode)
+void doKeyDown(SimView *view, short charCode)
 {
   LastKeys[0] = LastKeys[1];
   LastKeys[1] = LastKeys[2];
@@ -291,7 +300,7 @@ doKeyDown(SimView *view, short charCode)
 
 
 /* comefrom: processEvent */
-doKeyUp(SimView *view, short charCode)
+void doKeyUp(SimView *view, short charCode)
 {
   switch(charCode) {
 

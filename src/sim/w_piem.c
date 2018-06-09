@@ -368,6 +368,9 @@ static void	NeverPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
 static void	EventuallyPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
 static void	DeferPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
 static void	ShapePieMenu _ANSI_ARGS_((PieMenu *menuPtr));
+void LayoutPieMenu(PieMenu *menu);
+void UpdatePieMenuEntries(PieMenu *menuPtr);
+int CalcPieMenuItem(PieMenu *menu, int x, int y);
 
 
 /*
@@ -389,12 +392,12 @@ static void	ShapePieMenu _ANSI_ARGS_((PieMenu *menuPtr));
  */
 
 int
-Tk_PieMenuCmd(clientData, interp, argc, argv)
-    ClientData clientData;	/* Main window associated with
-				 * interpreter. */
-    Tcl_Interp *interp;		/* Current interpreter. */
-    int argc;			/* Number of arguments. */
-    char **argv;		/* Argument strings. */
+Tk_PieMenuCmd(ClientData clientData /* Main window associated with
+                                     * interpreter. */
+		, Tcl_Interp *interp        /* Current interpreter. */
+		, int argc                  /* Number of arguments. */
+		, char **argv               /* Argument strings. */
+		)
 {
     Tk_Window tkwin = (Tk_Window) clientData;
     Tk_Window new;
@@ -507,11 +510,7 @@ Tk_PieMenuCmd(clientData, interp, argc, argv)
  */
 
 static int
-PieMenuWidgetCmd(clientData, interp, argc, argv)
-    ClientData clientData;	/* Information about menu widget. */
-    Tcl_Interp *interp;		/* Current interpreter. */
-    int argc;			/* Number of arguments. */
-    char **argv;		/* Argument strings. */
+PieMenuWidgetCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv)
 {
     register PieMenu *menuPtr = (PieMenu *) clientData;
     register PieMenuEntry *mePtr;
@@ -1428,8 +1427,7 @@ UpdatePieMenu(clientData)
 }
 
 
-UpdatePieMenuEntries(menuPtr)
-    PieMenu *menuPtr;
+void UpdatePieMenuEntries(PieMenu *menuPtr)
 {
     register PieMenuEntry *mePtr;
     register Tk_Window tkwin = menuPtr->tkwin;
@@ -1909,10 +1907,7 @@ ActivatePieMenuEntry(menuPtr, index, preview)
     }
 
 
-int
-CalcPieMenuItem(menu, x, y)
-  PieMenu *menu;
-  int x, y;
+int CalcPieMenuItem(PieMenu *menu, int x, int y)
 {
   register PieMenuEntry *it, *last_it;
   int i, j, order, quadrant;
@@ -2072,8 +2067,7 @@ case 3: /*
 }
 
 
-LayoutPieMenu(menu)
-  PieMenu *menu;
+void LayoutPieMenu(PieMenu *menu)
 {
   int i;
   int total_slice, radius;
