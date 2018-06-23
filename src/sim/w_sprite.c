@@ -87,7 +87,7 @@ short Cycle;
 
 SimSprite *GlobalSprites[OBJN];
 
-SimSprite *NewSprite(char *name, int type, int x, int y);
+SimSprite *NewSprite(const char *name, int type, int x, int y);
 void MonsterHere(int x, int y);
 void MakeShipHere(int x, int y);
 void StartFire(int x, int y);

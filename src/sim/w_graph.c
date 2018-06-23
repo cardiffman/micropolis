@@ -105,7 +105,7 @@ Tk_ConfigSpec GraphConfigSpecs[] = {
 
 
 XDisplay *FindXDisplay();
-int ConfigureSimGraph(Tcl_Interp *interp, SimGraph *graph, int argc, char **argv, int flags);
+int ConfigureSimGraph(Tcl_Interp *interp, SimGraph *graph, int argc, const char **argv, int flags);
 void DestroyGraph(SimGraph *graph);
 void DoNewGraph(SimGraph *graph);
 void DoUpdateGraph(SimGraph *graph);

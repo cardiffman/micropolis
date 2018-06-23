@@ -34,7 +34,10 @@ typedef unsigned int size_t;
 #include "tkconfig.h"
 #include "default.h"
 #include "tkint.h"
+//#ifdef USE_X11
 #include <X11/extensions/shape.h>
+//#endif
+#include <stddef.h>
 
 #define PI 3.1415926535897932
 #define TWO_PI 6.2831853071795865
@@ -150,7 +153,6 @@ typedef struct PieMenuEntry {
 /*
  * Configuration specs for individual menu entries:
  */
-
 static Tk_ConfigSpec entryConfigSpecs[] = {
     {TK_CONFIG_BORDER, "-activebackground", (char *) NULL, (char *) NULL,
 	PIE_ENTRY_ACTIVE_BG, Tk_Offset(PieMenuEntry, activeBorder),
@@ -337,37 +339,37 @@ static Tk_ConfigSpec configSpecs[] = {
 
 int		Tk_PieMenuCmd(ClientData clientData, Tcl_Interp *interp,
 			      int argc, char **argv);
-static int	ActivatePieMenuEntry _ANSI_ARGS_((PieMenu *menuPtr,
-		    int index, int preview));
-static void	ComputePieMenuGeometry _ANSI_ARGS_((
-		    ClientData clientData));
-static int	ConfigurePieMenu _ANSI_ARGS_((Tcl_Interp *interp,
+static int	ActivatePieMenuEntry (PieMenu *menuPtr,
+		    int index, int preview);
+static void	ComputePieMenuGeometry (
+		    ClientData clientData);
+static int	ConfigurePieMenu (Tcl_Interp *interp,
 		    PieMenu *menuPtr, int argc, char **argv,
-		    int flags));
-static int	ConfigurePieMenuEntry _ANSI_ARGS_((Tcl_Interp *interp,
+		    int flags);
+static int	ConfigurePieMenuEntry (Tcl_Interp *interp,
 		    PieMenu *menuPtr, PieMenuEntry *mePtr, int index,
-		    int argc, char **argv, int flags));
-static void	DestroyPieMenu _ANSI_ARGS_((ClientData clientData));
-static void	DestroyPieMenuEntry _ANSI_ARGS_((ClientData clientData));
-static void	DisplayPieMenu _ANSI_ARGS_((ClientData clientData));
-static void	UpdatePieMenu _ANSI_ARGS_((ClientData clientData));
-static void	PopupPieMenu _ANSI_ARGS_((ClientData clientData));
-static void	EventuallyRedrawPieMenu _ANSI_ARGS_((PieMenu *menuPtr,
-		    int index));
-static int	GetPieMenuIndex _ANSI_ARGS_((Tcl_Interp *interp,
-		    PieMenu *menuPtr, char *string, int *indexPtr));
-static void	PieMenuEventProc _ANSI_ARGS_((ClientData clientData,
-		    XEvent *eventPtr));
-static int	PieMenuWidgetCmd _ANSI_ARGS_((ClientData clientData,
-		    Tcl_Interp *interp, int argc, char **argv));
-static int	UnpostSubPieMenu _ANSI_ARGS_((Tcl_Interp *interp,
-		    PieMenu *menuPtr));
-static void	PopupPieMenu _ANSI_ARGS_((ClientData clientData));
-static void	NowPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
-static void	NeverPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
-static void	EventuallyPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
-static void	DeferPopupPieMenu _ANSI_ARGS_((PieMenu *menuPtr));
-static void	ShapePieMenu _ANSI_ARGS_((PieMenu *menuPtr));
+		    int argc, char **argv, int flags);
+static void	DestroyPieMenu (ClientData clientData);
+static void	DestroyPieMenuEntry (ClientData clientData);
+static void	DisplayPieMenu (ClientData clientData);
+static void	UpdatePieMenu (ClientData clientData);
+static void	PopupPieMenu (ClientData clientData);
+static void	EventuallyRedrawPieMenu (PieMenu *menuPtr,
+		    int index);
+static int	GetPieMenuIndex (Tcl_Interp *interp,
+		    PieMenu *menuPtr, char *string, int *indexPtr);
+static void	PieMenuEventProc (ClientData clientData,
+		    XEvent *eventPtr);
+static int	PieMenuWidgetCmd (ClientData clientData,
+		    Tcl_Interp *interp, int argc, char **argv);
+static int	UnpostSubPieMenu (Tcl_Interp *interp,
+		    PieMenu *menuPtr);
+static void	PopupPieMenu (ClientData clientData);
+static void	NowPopupPieMenu (PieMenu *menuPtr);
+static void	NeverPopupPieMenu (PieMenu *menuPtr);
+static void	EventuallyPopupPieMenu (PieMenu *menuPtr);
+static void	DeferPopupPieMenu (PieMenu *menuPtr);
+static void	ShapePieMenu (PieMenu *menuPtr);
 void LayoutPieMenu(PieMenu *menu);
 void UpdatePieMenuEntries(PieMenu *menuPtr);
 int CalcPieMenuItem(PieMenu *menu, int x, int y);
@@ -405,9 +407,9 @@ Tk_PieMenuCmd(ClientData clientData /* Main window associated with
     XSetWindowAttributes atts;
 
     if (argc < 2) {
-	Tcl_AppendResult(interp, "wrong # args: should be \"",
-		argv[0], " pathName ?options?\"", (char *) NULL);
-	return TCL_ERROR;
+		Tcl_AppendResult(interp, "wrong # args: should be \"",
+			argv[0], " pathName ?options?\"", (char *) NULL);
+		return TCL_ERROR;
     }
 
     /*
@@ -419,7 +421,7 @@ Tk_PieMenuCmd(ClientData clientData /* Main window associated with
 
     new = Tk_CreateWindowFromPath(interp, tkwin, argv[1], "");
     if (new == NULL) {
-	return TCL_ERROR;
+    	return TCL_ERROR;
     }
     atts.override_redirect = True;
     atts.save_under = True;
@@ -518,101 +520,96 @@ PieMenuWidgetCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **arg
     int length, type;
     char c;
 
-    if (argc < 2) {
-	Tcl_AppendResult(interp, "wrong # args: should be \"",
-		argv[0], " option ?arg arg ...?\"", (char *) NULL);
-	return TCL_ERROR;
-    }
+	if (argc < 2) {
+		Tcl_AppendResult(interp, "wrong # args: should be \"", argv[0],
+				" option ?arg arg ...?\"", (char *) NULL);
+		return TCL_ERROR;
+	}
     Tk_Preserve((ClientData) menuPtr);
     c = argv[1][0];
     length = strlen(argv[1]);
-    if ((c == 'a') && (strncmp(argv[1], "activate", length) == 0)
-	    && (length >= 2)) {
-	int index;
+    if ((c == 'a') && (strncmp(argv[1], "activate", length) == 0) && (length >= 2)) {
+		int index;
 
-	if (argc != 3) {
-	    Tcl_AppendResult(interp, "wrong # args: should be \"",
-		    argv[0], " activate index\"", (char *) NULL);
-	    goto error;
-	}
-	if (GetPieMenuIndex(interp, menuPtr, argv[2], &index) != TCL_OK) {
-	    goto error;
-	}
-	if (menuPtr->active == index) {
-	    goto done;
-	}
-	result = ActivatePieMenuEntry(menuPtr, index, 1);
-	DeferPopupPieMenu(menuPtr);
-    } else if ((c == 's') && (strncmp(argv[1], "show", length) == 0)
-	    && (length >= 2)) {
-	int index;
+		if (argc != 3) {
+			Tcl_AppendResult(interp, "wrong # args: should be \"",
+				argv[0], " activate index\"", (char *) NULL);
+			goto error;
+		}
+		if (GetPieMenuIndex(interp, menuPtr, argv[2], &index) != TCL_OK) {
+			goto error;
+		}
+		if (menuPtr->active == index) {
+			goto done;
+		}
+		result = ActivatePieMenuEntry(menuPtr, index, 1);
+		DeferPopupPieMenu(menuPtr);
+    } else if ((c == 's') && (strncmp(argv[1], "show", length) == 0) && (length >= 2)) {
+		int index;
 
-	if (argc != 2) {
-	    Tcl_AppendResult(interp, "wrong # args: should be \"",
-		    argv[0], " show\"", (char *) NULL);
-	    goto error;
-	}
-	NowPopupPieMenu(menuPtr);
-    } else if ((c == 'p') && (strncmp(argv[1], "pending", length) == 0)
-	    && (length >= 2)) {
-	int index;
+		if (argc != 2) {
+			Tcl_AppendResult(interp, "wrong # args: should be \"",
+				argv[0], " show\"", (char *) NULL);
+			goto error;
+		}
+		NowPopupPieMenu(menuPtr);
+    } else if ((c == 'p') && (strncmp(argv[1], "pending", length) == 0) && (length >= 2)) {
+		int index;
 
-	if (argc != 2) {
-	    Tcl_AppendResult(interp, "wrong # args: should be \"",
-		    argv[0], " pending\"", (char *) NULL);
-	    goto error;
-	}
-	sprintf(interp->result, "%d",
-		(menuPtr->flags & POPUP_PENDING) ? 1 : 0);
-    } else if ((c == 'd') && (strncmp(argv[1], "defer", length) == 0)
-	    && (length >= 2)) {
-	int index;
+		if (argc != 2) {
+			Tcl_AppendResult(interp, "wrong # args: should be \"",
+				argv[0], " pending\"", (char *) NULL);
+			goto error;
+		}
+		sprintf(interp->result, "%d",
+			(menuPtr->flags & POPUP_PENDING) ? 1 : 0);
+    } else if ((c == 'd') && (strncmp(argv[1], "defer", length) == 0) && (length >= 2)) {
+		int index;
 
-	if (argc != 2) {
-	    Tcl_AppendResult(interp, "wrong # args: should be \"",
-		    argv[0], " defer\"", (char *) NULL);
-	    goto error;
-	}
-	DeferPopupPieMenu(menuPtr);
-    } else if ((c == 'a') && (strncmp(argv[1], "add", length) == 0)
-	    && (length >= 2)) {
-	PieMenuEntry **newEntries;
+		if (argc != 2) {
+			Tcl_AppendResult(interp, "wrong # args: should be \"",
+				argv[0], " defer\"", (char *) NULL);
+			goto error;
+		}
+		DeferPopupPieMenu(menuPtr);
+    } else if ((c == 'a') && (strncmp(argv[1], "add", length) == 0) && (length >= 2)) {
+		PieMenuEntry **newEntries;
 
-	if (argc < 3) {
-	    Tcl_AppendResult(interp, "wrong # args: should be \"",
-		    argv[0], " add type ?options?\"", (char *) NULL);
-	    goto error;
-	}
+		if (argc < 3) {
+			Tcl_AppendResult(interp, "wrong # args: should be \"",
+				argv[0], " add type ?options?\"", (char *) NULL);
+			goto error;
+		}
 
-	/*
-	 * Figure out the type of the new entry.
-	 */
+		/*
+		 * Figure out the type of the new entry.
+		 */
 
-	c = argv[2][0];
-	length = strlen(argv[2]);
-	if ((c == 'c') && (strncmp(argv[2], "command", length) == 0)) {
-	    type = COMMAND_ENTRY;
-	} else if ((c == 'p') && (strncmp(argv[2], "piemenu", length) == 0)) {
-	    type = PIEMENU_ENTRY;
-	} else {
-	    Tcl_AppendResult(interp, "bad menu entry type \"",
-			     argv[2], "\":  must be command or piemenu",
-			     (char *) NULL);
-	    goto error;
-	}
+		c = argv[2][0];
+		length = strlen(argv[2]);
+		if ((c == 'c') && (strncmp(argv[2], "command", length) == 0)) {
+			type = COMMAND_ENTRY;
+		} else if ((c == 'p') && (strncmp(argv[2], "piemenu", length) == 0)) {
+			type = PIEMENU_ENTRY;
+		} else {
+			Tcl_AppendResult(interp, "bad menu entry type \"",
+					 argv[2], "\":  must be command or piemenu",
+					 (char *) NULL);
+			goto error;
+		}
 
-	/*
-	 * Add a new entry to the end of the menu's array of entries,
-	 * and process options for it.
-	 */
+		/*
+		 * Add a new entry to the end of the menu's array of entries,
+		 * and process options for it.
+		 */
 
-	mePtr = (PieMenuEntry *) ckalloc(sizeof(PieMenuEntry));
-	newEntries = (PieMenuEntry **) ckalloc((unsigned)
-		((menuPtr->numEntries+1)*sizeof(PieMenuEntry *)));
-	if (menuPtr->numEntries != 0) {
-	    memcpy((VOID *) newEntries, (VOID *) menuPtr->entries,
-		    menuPtr->numEntries*sizeof(PieMenuEntry *));
-	    ckfree((char *) menuPtr->entries);
+		mePtr = (PieMenuEntry *) ckalloc(sizeof(PieMenuEntry));
+		newEntries = (PieMenuEntry **) ckalloc((unsigned)
+			((menuPtr->numEntries+1)*sizeof(PieMenuEntry *)));
+		if (menuPtr->numEntries != 0) {
+			memcpy((void *) newEntries, (void *) menuPtr->entries,
+				menuPtr->numEntries*sizeof(PieMenuEntry *));
+			ckfree((char *) menuPtr->entries);
 	}
 	menuPtr->entries = newEntries;
 	menuPtr->entries[menuPtr->numEntries] = mePtr;

@@ -22,9 +22,9 @@ static char rcsid[] = "$Header: /user6/ouster/tcl/tclTest/RCS/tclTest.c,v 1.21 9
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 #include "tcl.h"
 
-extern int exit();
 extern int Tcl_DumpActiveMemory();
 
 Tcl_Interp *interp;

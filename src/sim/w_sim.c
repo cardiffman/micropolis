@@ -1028,10 +1028,18 @@ int SimCmdCollapseMotion(Tcl_Interp *interp, int argc, char **argv)
     if ((Tcl_GetInt(interp, argv[2], &val) != TCL_OK)) {
       return (TCL_ERROR);
     }
+#if 0
     tkCollapseMotion = val;
+#else
+    ;
+#endif
   }
 
+#if 0
   sprintf(interp->result, "%d", tkCollapseMotion);
+#else
+  sprintf(interp->result, "%d", val);
+#endif
   return (TCL_OK);
 }
 

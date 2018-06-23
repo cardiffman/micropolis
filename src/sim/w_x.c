@@ -1360,45 +1360,42 @@ void DoAdjustPan(struct SimView *view)
   }
 /*  FixMicropolisTimer(); */
 
-  { int dx = last_tile_x - view->tile_x,
-        dy = last_tile_y - view->tile_y;
-    short **want = view->other_tiles,
-    	  **have = view->tiles;
+	{
+		int dx = last_tile_x - view->tile_x, dy = last_tile_y - view->tile_y;
+		short **want = view->other_tiles, **have = view->tiles;
 
 #ifdef DEBUG_PAN
-    printf("scrolling %d %d\n", dx, dy);
+		printf("scrolling %d %d\n", dx, dy);
 #endif
 
-    if ((dx != 0) || (dy != 0)) {
-      int row, col, x, y,
-          width = view->tile_width,
-          height = view->tile_height;
+		if ((dx != 0) || (dy != 0)) {
+			int row, col, x, y, width = view->tile_width, height =
+					view->tile_height;
 
-      for (col = 0; col < width; col++)
-	memcpy(want[col], have[col], (height * sizeof(short)));
+			for (col = 0; col < width; col++)
+				memcpy(want[col], have[col], (height * sizeof(short)));
 
-      for (col = 0; col < total_width; col++) {
-	x = col - dx;
-	for (row = 0; row < total_height; row++) {
-	  y = row - dy;
-	  if ((x >= 0) && (x < width) &&
-	      (y >= 0) && (y < height)) {
-	    have[col][row] = want[x][y];
-	  } else {
-	    have[col][row] = -1;
-	  }
+			for (col = 0; col < total_width; col++) {
+				x = col - dx;
+				for (row = 0; row < total_height; row++) {
+					y = row - dy;
+					if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) {
+						have[col][row] = want[x][y];
+					} else {
+						have[col][row] = -1;
+					}
+				}
+			}
+
+			XCopyArea(view->x->dpy, view->pixmap, view->pixmap, view->x->gc, 0,
+					0, view->tile_width << 4, view->tile_height << 4, dx << 4,
+					dy << 4);
+
+			if (view->type == X_Mem_View) {
+				XSync(view->x->dpy, False);
+			}
+		}
 	}
-      }
-
-      XCopyArea(view->x->dpy, view->pixmap, view->pixmap, view->x->gc,
-		0, 0, view->tile_width <<4, view->tile_height <<4,
-		dx <<4, dy <<4);
-
-      if (view->type == X_Mem_View) {
-	XSync(view->x->dpy, False);
-      }
-    }
-  }
 }
 
 

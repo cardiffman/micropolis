@@ -689,91 +689,91 @@ main(int argc, char *argv[])
     case 'R': /* Root Window ID */
       c = atoi(optarg);
       if (c) {
-	tk_RootWindow = c;
+    	  tk_RootWindow = c;
       } else {
-	errflg = 1;
+    	  errflg = 1;
       }
       break;
 
     case 'g': /* Generate New Terrain */
       if (Startup) {
-	errflg = 1;
+    	  errflg = 1;
       } else {
-	Startup = -1;
+    	  Startup = -1;
       }
       break;
 
     case 'l': /* Level */
       c = atoi(optarg);
       if (!c) {
-	if (MatchArg(optarg, "easy")) {
-	  c = 1;
-	} else if (MatchArg(optarg, "medium")) {
-	  c = 2;
-	} else if (MatchArg(optarg, "hard")) {
-	  c = 3;
-	}
+    	  if (MatchArg(optarg, "easy")) {
+    		  c = 1;
+    	  } else if (MatchArg(optarg, "medium")) {
+    		  c = 2;
+    	  } else if (MatchArg(optarg, "hard")) {
+    		  c = 3;
+    	  }
       }
       if ((c < 1) || (c > 3)) {
-	errflg = 1;
+    	  errflg = 1;
       } else {
-	StartupGameLevel = c - 1;
+    	  StartupGameLevel = c - 1;
       }
       break;
 
     case 's': /* Scenario <name> */
       if (Startup)
-	errflg++;
+    	  errflg++;
       else {
-	c = atoi(optarg);
-	if (!c) {
-	  if (MatchArg(optarg, "Dullsville")) {
-	    c = 1;
-	  } else if (MatchArg(optarg, "San_Francisco")) {
-	    c = 2;
-	  } else if (MatchArg(optarg, "Hamburg")) {
-	    c = 3;
-	  } else if (MatchArg(optarg, "Bern")) {
-	    c = 4;
-	  } else if (MatchArg(optarg, "Tokyo")) {
-	    c = 5;
-	  } else if (MatchArg(optarg, "Detroit")) {
-	    c = 6;
-	  } else if (MatchArg(optarg, "Boston")) {
-	    c = 7;
-	  } else if (MatchArg(optarg, "Rio_de_Janeiro")) {
-	    c = 8;
-	  }
-	}
-	if ((c < 1) || (c > 8)) {
-	  errflg = 1;
-	} else {
-	  Startup = c;
-	}
+    	  c = atoi(optarg);
+    	  if (!c) {
+    		  if (MatchArg(optarg, "Dullsville")) {
+    			  c = 1;
+    		  } else if (MatchArg(optarg, "San_Francisco")) {
+    			  c = 2;
+    		  } else if (MatchArg(optarg, "Hamburg")) {
+    			  c = 3;
+    		  } else if (MatchArg(optarg, "Bern")) {
+    			  c = 4;
+    		  } else if (MatchArg(optarg, "Tokyo")) {
+    			  c = 5;
+    		  } else if (MatchArg(optarg, "Detroit")) {
+    			  c = 6;
+    		  } else if (MatchArg(optarg, "Boston")) {
+    			  c = 7;
+    		  } else if (MatchArg(optarg, "Rio_de_Janeiro")) {
+    			  c = 8;
+    		  }
+    	  }
+    	  if ((c < 1) || (c > 8)) {
+    		  errflg = 1;
+    	  } else {
+    		  Startup = c;
+    	  }
       }
       break;
 
     case 'd': /* Display <name> */
       { char *d = Displays;
 
-	if (d == NULL) {
-	  Displays = malloc(strlen(optarg) + 3);
-	  sprintf(Displays, "{%s}", optarg);
+		  if (d == NULL) {
+			  Displays = malloc(strlen(optarg) + 3);
+			  sprintf(Displays, "{%s}", optarg);
 
-	  if (strchr(optarg, ':') != NULL) {
-	    FirstDisplay = malloc(strlen(optarg) + 1);
-	    strcpy(FirstDisplay, optarg);
-	  } else {
-	    FirstDisplay = malloc(strlen(optarg) + 3);
-	    sprintf(FirstDisplay, "%s:0", optarg);
-	  }
-	} else {
-	  /* Implicitly set multi player mode if multiple displays given. */
-	  MultiPlayerMode = 1;
-	  Displays = malloc(strlen(Displays) + strlen(optarg) + 4);
-	  sprintf(Displays, "%s {%s}", d, optarg);
-	  free(d);
-	}
+			  if (strchr(optarg, ':') != NULL) {
+				  FirstDisplay = malloc(strlen(optarg) + 1);
+				  strcpy(FirstDisplay, optarg);
+			  } else {
+				  FirstDisplay = malloc(strlen(optarg) + 3);
+				  sprintf(FirstDisplay, "%s:0", optarg);
+			  }
+		  } else {
+			  /* Implicitly set multi player mode if multiple displays given. */
+			  MultiPlayerMode = 1;
+			  Displays = malloc(strlen(Displays) + strlen(optarg) + 4);
+			  sprintf(Displays, "%s {%s}", d, optarg);
+			  free(d);
+		  }
       }
       break;
 
@@ -783,69 +783,50 @@ main(int argc, char *argv[])
     }
   }
 
-  if (!errflg &&
-      !tkMustExit) {
-    if ((Startup == -1) ||
-	(Startup == -2)) {
+  if (!errflg && !tkMustExit) {
+    if ((Startup == -1) || (Startup == -2)) {
       /* Generate New City */
       if ((optind != argc) && (optind != argc - 1)) {
-	errflg = 1;
+    	  errflg = 1;
       } else {
-	if (optind == argc - 1)
-	  StartupName = argv[optind];
+    	  if (optind == argc - 1)
+    		  StartupName = argv[optind];
       }
     } else if (Startup > 0) {
-      /* Scenario */
+    	/* Scenario */
     } else if (optind == argc - 1) {
-      /* Load City */
-      Startup = -2;
-      StartupName = argv[optind];
+    	/* Load City */
+    	Startup = -2;
+    	StartupName = argv[optind];
     } else if (optind == argc) {
-      /* No arguments */
+    	/* No arguments */
     } else {
-      errflg = 1;
+    	errflg = 1;
     }
   }
 
   if (errflg) {
-    fprintf(stderr,
-"usage: %s\n", argv[0]);
-    fprintf(stderr,
-"        [-s(cenario) number|name]\n");
-    fprintf(stderr,
-"        [-g(enerate random map and start playing)\n");
-    fprintf(stderr,
-"        [-l(evel) number|name]\n");
-    fprintf(stderr,
-"        [-w(ire mode: use X11 networking without shared memory)]\n");
-    fprintf(stderr,
-"        [-t(ty mode: interactive TCL session on stdin/stdout)]\n");
-    fprintf(stderr,
-"        [-c(olormap mode: create own X11 colormap on 8 bit screens)]\n");
-    fprintf(stderr,
-"        [-S(ugar mode: enable OLPC Sugar user interface integration)]\n");
-    fprintf(stderr,
-"        [-m(ulti player mode: enable adding multiple players via X11)]\n");
-    fprintf(stderr,
-"        [NewCityName]\n");
-    fprintf(stderr,
-"        [SavedFileName.city]\n");
-    fprintf(stderr,
-"The game level and NewCityName argument are optional, and only apply when\n");
-    fprintf(stderr,
-"starting a new city or generating new terrain.\n");
-    fprintf(stderr,
-"Game levels include: 1: Easy, 2: Medium, 3: Hard\n");
-    fprintf(stderr,
-"Scenarios include: 1: Dullsville, 2: San_Francisco, 3: Hamburg, 4: Bern,\n");
-    fprintf(stderr,
-"		    5: Tokyo, 6: Detroit, 7: Boston, 8: Rio_de_Janeiro\n");
+    fprintf(stderr, "usage: %s\n", argv[0]);
+    fprintf(stderr, "        [-s(cenario) number|name]\n");
+    fprintf(stderr, "        [-g(enerate random map and start playing)\n");
+    fprintf(stderr, "        [-l(evel) number|name]\n");
+    fprintf(stderr, "        [-w(ire mode: use X11 networking without shared memory)]\n");
+    fprintf(stderr, "        [-t(ty mode: interactive TCL session on stdin/stdout)]\n");
+    fprintf(stderr, "        [-c(olormap mode: create own X11 colormap on 8 bit screens)]\n");
+    fprintf(stderr, "        [-S(ugar mode: enable OLPC Sugar user interface integration)]\n");
+    fprintf(stderr, "        [-m(ulti player mode: enable adding multiple players via X11)]\n");
+    fprintf(stderr, "        [NewCityName]\n");
+    fprintf(stderr, "        [SavedFileName.city]\n");
+    fprintf(stderr, "The game level and NewCityName argument are optional, and only apply when\n");
+    fprintf(stderr, "starting a new city or generating new terrain.\n");
+    fprintf(stderr, "Game levels include: 1: Easy, 2: Medium, 3: Hard\n");
+    fprintf(stderr, "Scenarios include: 1: Dullsville, 2: San_Francisco, 3: Hamburg, 4: Bern,\n");
+    fprintf(stderr, "		    5: Tokyo, 6: Detroit, 7: Boston, 8: Rio_de_Janeiro\n");
     fflush(stderr);
     sim_exit(0); // Just sets tkMustExit and ExitReturn
   }
 
-  if ((!tkMustExit) &&
-      (Displays == NULL)) {
+  if ((!tkMustExit) && (Displays == NULL)) {
     char *d = getenv("DISPLAY");
 
     if (d == NULL) d = ":0";

@@ -159,6 +159,7 @@ _load_short(short *buf, int len, FILE *f)
 }
 
 
+#ifdef needed
 static int
 _load_long(long *buf, int len, FILE *f)
 {
@@ -169,6 +170,7 @@ _load_long(long *buf, int len, FILE *f)
 
   return 1;
 }
+#endif
 
 
 static int

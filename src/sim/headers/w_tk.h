@@ -24,7 +24,7 @@ void CancelRedrawView(SimView *view);
 void tk_main(void);
 void InvalidateEditors(void);
 void InvalidateMaps(void);
-int Eval(char *buf);
+int Eval(const char *buf);
 void Kick(void);
 void StartMicropolisTimer(void);
 void StopMicropolisTimer(void);

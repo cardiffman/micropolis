@@ -28,8 +28,6 @@ void DrawCursor(SimView *view);
 void DrawPending(SimView *view);
 void DrawOutside(SimView *view);
 void HandleAutoGoto(SimView *view);
-int DoUpdateEditor(SimView *view);
-void DoNewEditor(SimView *view);
 int
 DoEditorCmd(ClientData clientData, Tcl_Interp *interp, int argc, char **argv);
 
