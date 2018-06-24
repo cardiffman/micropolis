@@ -74,10 +74,9 @@
 
 short MustUpdateFunds;
 short MustUpdateOptions;
-uint8_t LastCityTime;
-uint8_t LastCityYear;
-uint8_t LastCityMonth;
-uint8_t LastFunds;
+int32_t LastCityTime;
+int32_t LastCityYear;
+int32_t LastCityMonth;
 int32_t LastR, LastC, LastI;
 
 char *dateStr[12] = {
