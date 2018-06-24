@@ -797,7 +797,7 @@ RGBQUAD toQuad(int type, const char* argument) {
 			q.rgbRed = (cval&0xFF0000)>>16;
 			q.rgbGreen = (cval&0x00FF00)>>8;
 			q.rgbBlue = cval&0xFF;
-			printf("argument+1 %s cval %06x r %02x g %02x b %02x\n", argument+1, cval, q.rgbRed, q.rgbGreen, q.rgbBlue);
+			//printf("argument+1 %s cval %06x r %02x g %02x b %02x\n", argument+1, cval, q.rgbRed, q.rgbGreen, q.rgbBlue);
 			break;
 		case 13:
 			cval2 = strtoll(argument+1,NULL,16);
@@ -814,7 +814,7 @@ RGBQUAD toQuad(int type, const char* argument) {
 		}
 	}
 	}
-	printf("type %c argument %s cval %06x r %02x g %02x b %02x\n", type, argument, cval, q.rgbRed, q.rgbGreen, q.rgbBlue);
+	//printf("type %c argument %s cval %06x r %02x g %02x b %02x\n", type, argument, cval, q.rgbRed, q.rgbGreen, q.rgbBlue);
 	return q;
 }
 int pixelToIndex(char* pixel) {
@@ -857,7 +857,7 @@ void foo(HDC hdc)
 	//info.bmiColors = malloc(image.numColors);
 	for (int color = 0; color<image.numColors; color++) {
 		info.bmiColors[color] = toQuad(image.colors[color].type, image.colors[color].argument);
-		printf("color: %d %d %d", info.bmiColors[color].rgbRed,info.bmiColors[color].rgbGreen,info.bmiColors[color].rgbBlue);
+		//printf("color: %d %d %d", info.bmiColors[color].rgbRed,info.bmiColors[color].rgbGreen,info.bmiColors[color].rgbBlue);
 	}
 	switch (image.charsDepth)
 	{
