@@ -71,6 +71,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+int32_t TotalFunds;
+uint8_t LastFunds;
 float roadPercent = 0.0;
 float policePercent = 0.0;
 float firePercent = 0.0;
@@ -82,6 +84,7 @@ int32_t policeMaxValue;
 int32_t fireMaxValue;
 int MustDrawCurrPercents = 0;
 int MustDrawBudgetWindow = 0;
+short MustUpdateFunds;
 void SetBudget(char *flowStr, char *previousStr,
 	      char *currentStr, char *collectedStr, short tax);
 void SetBudgetValues(char *roadGot, char *roadWant,
@@ -241,6 +244,7 @@ void drawBudgetWindow(void)
 
 void ReallyDrawBudgetWindow(void)
 {
+#ifdef USE_TCL
   short cashFlow, cashFlow2;
   char numStr[256], dollarStr[256], collectedStr[256],
        flowStr[256], previousStr[256], currentStr[256];
@@ -269,6 +273,7 @@ void ReallyDrawBudgetWindow(void)
   makeDollarDecimalStr(numStr, collectedStr);
 
   SetBudget(flowStr, previousStr, currentStr, collectedStr, CityTax);
+#endif
 }
 
 
@@ -280,6 +285,7 @@ void drawCurrPercents(void)
 
 void ReallyDrawCurrPercents(void)
 {
+#ifdef USE_TCL
   char num[256];
   char fireWant[256], policeWant[256], roadWant[256];
   char fireGot[256], policeGot[256], roadGot[256];
@@ -305,6 +311,7 @@ void ReallyDrawCurrPercents(void)
   SetBudgetValues(roadGot, roadWant,
 		  policeGot, policeWant,
 		  fireGot, fireWant);
+#endif
 }
 
 
@@ -325,13 +332,17 @@ void UpdateBudget(void)
 {
   drawCurrPercents();
   drawBudgetWindow();
+#ifdef USE_TCL
   Eval("UIUpdateBudget");
+#endif
 }
 
 
 void ShowBudgetWindowAndStartWaiting(void)
 {
+#ifdef USE_TCL
   Eval("UIShowBudgetAndWait");
+#endif
 
   Pause();
 }
@@ -340,11 +351,13 @@ void ShowBudgetWindowAndStartWaiting(void)
 void SetBudget(char *flowStr, char *previousStr,
 	  char *currentStr, char *collectedStr, short tax)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UISetBudget {%s} {%s} {%s} {%s} {%d}",
 	  flowStr, previousStr, currentStr, collectedStr, tax);
   Eval(buf);
+#endif
 }
 
 
@@ -352,6 +365,7 @@ void SetBudgetValues(char *roadGot, char *roadWant,
 		char *policeGot, char *policeWant,
 		char *fireGot, char *fireWant)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UISetBudgetValues {%s} {%s} %d {%s} {%s} %d {%s} {%s} %d",
@@ -359,6 +373,52 @@ void SetBudgetValues(char *roadGot, char *roadWant,
 	  policeGot, policeWant, (int)(policePercent * 100),
 	  fireGot, fireWant, (int)(firePercent * 100));
   Eval(buf);
+#endif
+}
+
+
+void Spend(int dollars)
+{
+  SetFunds(TotalFunds - dollars);
+}
+
+
+void SetFunds(int dollars)
+{
+  TotalFunds = dollars;
+  UpdateFunds();
+}
+
+
+void UpdateFunds(void)
+{
+  MustUpdateFunds = 1;
+//  Kick();
+}
+
+
+void ReallyUpdateFunds(void)
+{
+  char localStr[256], dollarStr[256], buf[256];
+
+  if (!MustUpdateFunds) return;
+
+  MustUpdateFunds = 0;
+
+  if (TotalFunds < 0) TotalFunds = 0;
+
+  if (TotalFunds != LastFunds) {
+    LastFunds = TotalFunds;
+#ifdef USE_TCL
+    sprintf(localStr, "%d", TotalFunds);
+    makeDollarDecimalStr(localStr, dollarStr);
+
+    sprintf(localStr, "Funds: %s", dollarStr);
+
+    sprintf(buf, "UISetFunds {%s}", localStr);
+    Eval(buf);
+#endif
+  }
 }
 
 

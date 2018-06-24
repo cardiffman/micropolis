@@ -66,7 +66,10 @@
 #include "w_stubs.h"
 #include "w_win.h"
 #include "s_eval.h"
+#include "s_alloc.h"
 #include <stdio.h>
+
+static short EvalChanged;
 
 char *cityClassStr[6] = {
   "VILLAGE", "TOWN", "CITY", "CAPITAL", "METROPOLIS", "MEGALOPOLIS"
@@ -160,6 +163,7 @@ void SetEvaluation(char *changed, char *score,
 	      char *cityclass, char *citylevel,
 	      char *goodyes, char *goodno, char *title)
 {
+#if 0
   char buf[2048];
 
   sprintf(buf, "UISetEvaluation {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s} {%s}",
@@ -170,6 +174,14 @@ void SetEvaluation(char *changed, char *score,
 	  cityclass, citylevel,
 	  goodyes, goodno, title);
   Eval(buf);
+#endif
+}
+
+
+int
+CurrentYear()
+{
+  return (CityTime/48 + StartingYear);
 }
 
 

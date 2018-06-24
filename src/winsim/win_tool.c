@@ -838,11 +838,13 @@ void doZoneStatus(short mapH, short mapV)
 void DoShowZoneStatus(char *str, char *s0, char *s1, char *s2, char *s3, char *s4,
 		 int x, int y)
 {
+#ifdef USE_TCL
   char buf[1024];
 
   sprintf(buf, "UIShowZoneStatus {%s} {%s} {%s} {%s} {%s} {%s} %d %d",
 	  str, s0, s1, s2, s3, s4, x, y);
   Eval(buf);
+#endif
 }
 
 
@@ -914,6 +916,7 @@ void put6x6Rubble(short x, short y)
 
 void DidTool(SimView *view, char *name, short x, short y)
 {
+#ifdef USE_TCL
   char buf[256];
 
   if (view != NULL) {
@@ -921,15 +924,18 @@ void DidTool(SimView *view, char *name, short x, short y)
 	    name, "xxx", x, y);
     Eval(buf);
   }
+#endif
 }
 
 
 void DoSetWandState(SimView *view, short state)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UISetToolState %s %d", "xxx", state);
   Eval(buf);
+#endif
 }
 
 
@@ -1716,9 +1722,39 @@ void ToolDrag(SimView *view, int px, int py)
 
 void DoPendTool(SimView *view, int tool, int x, int y)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "DoPendTool %s %d %d %d",
 	  "XXX", tool, x, y);
   Eval(buf);
+#endif
 }
+
+void ViewToPixelCoords(SimView *view, int x, int y, int *outx, int *outy)
+{
+  x = view->pan_x - ((view->w_width >>1) - x);
+  y = view->pan_y - ((view->w_height >>1) - y);
+
+  if (x < 0) x = 0;
+  if (x >= (WORLD_X <<4)) x = (WORLD_X <<4) - 1;
+  if (y < 0) y = 0;
+  if (y >= (WORLD_Y <<4)) y = (WORLD_Y <<4) - 1;
+
+  if (x < (view->tile_x <<4))
+    x = (view->tile_x <<4);
+  if (x >= ((view->tile_x + view->tile_width) <<4))
+    x = ((view->tile_x + view->tile_width) <<4) - 1;
+  if (y < (view->tile_y <<4))
+    y = (view->tile_y <<4);
+  if (y >= ((view->tile_y + view->tile_height) <<4))
+    y = ((view->tile_y + view->tile_height) <<4) - 1;
+
+  if (view->tool_x_const != -1)
+    x = (view->tool_x_const <<4) + 8;
+  if (view->tool_y_const != -1)
+    y = (view->tool_y_const <<4) + 8;
+
+  *outx = x; *outy = y;
+}
+

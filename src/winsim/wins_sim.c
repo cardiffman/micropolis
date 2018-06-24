@@ -243,7 +243,9 @@ void Simulate(int mod16)
       break;
     case 15:
       if (!(Scycle % SpdFir[x])) FireAnalysis();
+#ifdef HAVE_DISASTERS
       DoDisasters();
+#endif
       break;
   }
 }
@@ -1116,16 +1118,16 @@ void DoSPZone(short PwrOn)
     return;
 
   case STADIUM:
-    StadiumPop++;
-    if (!(CityTime & 15))
-      RepairZone(STADIUM, 4);
-    if (PwrOn)
-      if (!((CityTime + SMapX + SMapY) & 31)) {	/* post release */
-	DrawStadium(FULLSTADIUM);
-	Map[SMapX + 1][SMapY] = FOOTBALLGAME1 + ANIMBIT;
-	Map[SMapX + 1][SMapY + 1] = FOOTBALLGAME2 + ANIMBIT;
-      }
-    return;
+		StadiumPop++;
+		if (!(CityTime & 15))
+			RepairZone(STADIUM, 4);
+		if (PwrOn)
+			if (!((CityTime + SMapX + SMapY) & 31)) { /* post release */
+				DrawStadium(FULLSTADIUM);
+				Map[SMapX + 1][SMapY] = FOOTBALLGAME1 + ANIMBIT;
+				Map[SMapX + 1][SMapY + 1] = FOOTBALLGAME2 + ANIMBIT;
+			}
+		return;
 
  case FULLSTADIUM:
     StadiumPop++;

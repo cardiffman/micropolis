@@ -310,7 +310,7 @@ void SendMesAt(short Mnum, short x, short y)
   }
 }
 
-
+#ifdef HAVE_RESOURCES
 void doMessage(void)
 {
   char messageStr[256];
@@ -416,15 +416,20 @@ void doMessage(void)
     }
   }
 }
+#endif
 
 
 void DoAutoGoto(short x, short y, char *msg)
 {
+#ifdef USE_TCL
   char buf[256];
 
   SetMessageField(msg);
   sprintf(buf, "UIAutoGoto %d %d", x, y);
   Eval(buf);
+#else
+  SetMessageField(msg);
+#endif
 }
 
 
@@ -436,30 +441,38 @@ void SetMessageField(char *str)
       strcmp(LastMessage, str)) {
     strcpy(LastMessage, str);
     HaveLastMessage = 1;
+#ifdef USE_TCL
     sprintf(buf, "UISetMessage {%s}", str);
     Eval(buf);
+#endif
   }
 }
 
 
 void DoShowPicture(short id)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UIShowPicture %d", id);
   Eval(buf);
+#endif
 }
 
 
 void DoLoseGame(void)
 {
+#ifdef USE_TCL
   Eval("UILoseGame");
+#endif
 }
 
 
 void DoWinGame(void)
 {
+#ifdef USE_TCL
   Eval("UIWinGame");
+#endif
 }
 
 

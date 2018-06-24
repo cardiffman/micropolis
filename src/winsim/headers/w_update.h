@@ -12,10 +12,10 @@
 
 extern short MustUpdateOptions;
 extern short MustUpdateFunds;
-extern uint8_t LastCityTime;
-extern uint8_t LastCityYear;
-extern uint8_t LastCityMonth;
-extern uint8_t LastFunds;
+extern int32_t LastCityTime;
+extern int32_t LastCityYear;
+extern int32_t LastCityMonth;
+extern int32_t LastFunds;
 extern int32_t LastR, LastC, LastI;
 extern char *dateStr[12];
 

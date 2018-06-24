@@ -71,6 +71,7 @@
 #include <ctype.h>
 #include "sim.h"
 
+char *CityName;
 
 /* comefrom: drawTaxesCollected incBoxValue decBoxValue drawCurrentFunds
 	     drawActualBox UpdateFunds updateCurrentCost */
@@ -128,54 +129,6 @@ void makeDollarDecimalStr(char *numStr, char *dollarStr)
       dollarStr[dollarIndex++] = numStr[numIndex++];
     }
   }
-}
-
-
-void Pause(void)
-{
-  if (!sim_paused) {
-    sim_paused_speed = SimMetaSpeed;
-    setSpeed(0);
-    sim_paused = 1;
-  }
-}
-
-
-void Resume(void)
-{
-  if (sim_paused) {
-    sim_paused = 0;
-    setSpeed(sim_paused_speed);
-  }
-}
-
-
-void setSpeed(short speed)
-{
-  if (speed < 0) speed = 0;
-  else if (speed > 3) speed = 3;
-
-  SimMetaSpeed = speed;
-
-  if (sim_paused) {
-    sim_paused_speed = SimMetaSpeed;
-    speed = 0;
-  }
-
-  SimSpeed = speed;
-
-  if (speed == 0) {
-    StopMicropolisTimer();
-  } else {
-    StartMicropolisTimer();
-  }
-
-#ifdef USE_TCL
-  { char buf[256];
-    sprintf(buf, "UISetSpeed %d", sim_paused ? 0 : SimMetaSpeed);
-    Eval(buf);
-  }
-#endif
 }
 
 
@@ -259,13 +212,6 @@ void SetYear(int year)
   year = (year - StartingYear) - (CityTime / 48);
   CityTime += year * 48;
   doTimeStuff();
-}
-
-
-int
-CurrentYear()
-{
-  return (CityTime/48 + StartingYear);
 }
 
 

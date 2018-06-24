@@ -24,7 +24,7 @@ extern short GameLevel;
 extern int32_t TotalFunds;
 extern short SimMetaSpeed;
 extern char *CityName;
-extern short EvalChanged;
+//extern short EvalChanged;
 extern int32_t TotalFunds;
 
 void SetFunds(int dollars);

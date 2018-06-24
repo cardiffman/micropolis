@@ -80,6 +80,8 @@ short ShakeNow;
 short FloodCnt;
 short FloodX, FloodY;
 
+extern int earthquake_timer_set;
+
 void ScenarioDisaster(void);
 void SetFire(void);
 void MakeFlood(void);
@@ -335,4 +337,34 @@ void DoFlood(void)
   else
     if (!(Rand16() & 15))
       Map[SMapX][SMapY] = 0;
+}
+
+void
+StopEarthquake(void)
+{
+  ShakeNow = 0;
+#if 0
+  if (earthquake_timer_set) {
+    Tk_DeleteTimerHandler(earthquake_timer_token);
+  }
+#endif
+  earthquake_timer_set = 0;
+}
+
+void DoEarthQuake(void)
+{
+#ifdef USE_TCL
+  MakeSound("city", "Explosion-Low");
+  Eval("UIEarthQuake");
+  ShakeNow++;
+  if (earthquake_timer_set) {
+#if 0
+    Tk_DeleteTimerHandler(earthquake_timer_token);
+#endif
+  }
+#if 0
+  Tk_CreateTimerHandler(earthquake_delay, (void (*)())StopEarthquake, (ClientData) 0);
+#endif
+#endif
+  earthquake_timer_set = 1;
 }

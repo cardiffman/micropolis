@@ -377,6 +377,7 @@ void Kick(void)
 	// Do sim_update() when idle
 }
 
+#if 0
 void
 StopEarthquake(void)
 {
@@ -406,7 +407,7 @@ void DoEarthQuake(void)
 #endif
   earthquake_timer_set = 1;
 }
-
+#endif
 
 void StopToolkit(void)
 {

@@ -76,7 +76,6 @@
 /* Stubs */
 
 
-int32_t TotalFunds;
 short PunishCnt;
 short autoBulldoze, autoBudget;
 int32_t LastMesTime;
@@ -86,10 +85,8 @@ short ScenarioID;
 short SimSpeed;
 short SimMetaSpeed;
 short UserSoundOn;
-char *CityName;
 short NoDisasters;
 short MesNum;
-short EvalChanged;
 short flagBlink;
 
 void DoPlayNewCity(void);
@@ -97,19 +94,6 @@ void DoReallyStartGame(void);
 void DoStartLoad(void);
 void DoStartScenario(int scenario);
 void InitGame(void);
-
-
-void Spend(int dollars)
-{
-  SetFunds(TotalFunds - dollars);
-}
-
-
-void SetFunds(int dollars)
-{
-  TotalFunds = dollars;
-  UpdateFunds();
-}
 
 
 /* Mac */

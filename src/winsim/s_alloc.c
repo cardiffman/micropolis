@@ -62,6 +62,7 @@
 #include "s_alloc.h"
 #include "mac.h"
 #include "sim.h"
+#include <stdlib.h>
 
 /* Allocate Stuff */
 
@@ -154,8 +155,7 @@ void initMapArrays(void)
   unsigned short *auxPtr, *temp1;
 
   if (!mapPtr)
-    mapPtr = (unsigned short *)NewPtr(sizeof(unsigned short) *
-				      WORLD_X * WORLD_Y);
+    mapPtr = calloc(WORLD_X * WORLD_Y,sizeof(unsigned short));
   auxPtr = mapPtr;
 
   for (i = 0; i < WORLD_X; i++) {
@@ -163,14 +163,14 @@ void initMapArrays(void)
     Map[i] = (short *)temp1;
   }
 
-  popPtr = NewPtr(HWLDX * HWLDY);
-  trfPtr = NewPtr(HWLDX * HWLDY);
-  polPtr = NewPtr(HWLDX * HWLDY);
-  landPtr = NewPtr(HWLDX * HWLDY);
-  crimePtr = NewPtr(HWLDX * HWLDY);
+  popPtr = calloc(HWLDX * HWLDY,1);
+  trfPtr = calloc(HWLDX * HWLDY,1);
+  polPtr = calloc(HWLDX * HWLDY,1);
+  landPtr = calloc(HWLDX * HWLDY,1);
+  crimePtr = calloc(HWLDX * HWLDY,1);
 
-  tem1Base = NewPtr(HWLDX * HWLDY);
-  tem2Base = NewPtr(HWLDX * HWLDY);
+  tem1Base = calloc(HWLDX * HWLDY,1);
+  tem2Base = calloc(HWLDX * HWLDY,1);
 
   auxPopPtr = popPtr;
   auxTrfPtr = trfPtr;
@@ -191,20 +191,20 @@ void initMapArrays(void)
 
   brettPtr = (Ptr) &PopDensity[0][0];
 
-  terrainBase = NewPtr(QWX * QWY);
-  qTemBase = NewPtr(QWX * QWY);
+  terrainBase = calloc(QWX * QWY,1);
+  qTemBase = calloc(QWX * QWY,1);
 
   for (i = 0; i < QWX; i++) {
     TerrainMem[i] = (Byte *)terrainBase + (i * QWY);
     Qtem[i] = (Byte *)qTemBase + (i * QWY);
   }
 
-  ResHis = (short *)NewPtr(HISTLEN);
-  ComHis = (short *)NewPtr(HISTLEN);
-  IndHis = (short *)NewPtr(HISTLEN);
-  MoneyHis = (short *)NewPtr(HISTLEN);
-  PollutionHis = (short *)NewPtr(HISTLEN);
-  CrimeHis = (short *)NewPtr(HISTLEN);
-  MiscHis = (short *)NewPtr(MISCHISTLEN);
-  PowerMap = (short *)NewPtr(POWERMAPLEN);		/* power alloc */
+  ResHis = (short *)calloc(HISTLEN,1);
+  ComHis = (short *)calloc(HISTLEN,1);
+  IndHis = (short *)calloc(HISTLEN,1);
+  MoneyHis = (short *)calloc(HISTLEN,1);
+  PollutionHis = (short *)calloc(HISTLEN,1);
+  CrimeHis = (short *)calloc(HISTLEN,1);
+  MiscHis = (short *)calloc(MISCHISTLEN,1);
+  PowerMap = (short *)calloc(POWERMAPLEN,1);		/* power alloc */
 }

@@ -85,7 +85,9 @@ void InitializeSound(void)
 
   if (!UserSoundOn) return;
 
+#ifdef USE_TCL
   Eval("UIInitializeSound");
+#endif
 }
 
 
@@ -93,7 +95,9 @@ void ShutDownSound(void)
 {
   if (SoundInitialized) {
     SoundInitialized = 0;
+#ifdef USE_TCL
     Eval("UIShutDownSound");
+#endif
   }
 }
 
@@ -105,8 +109,10 @@ void MakeSound(char *channel, char *id)
   if (!UserSoundOn) return;
   if (!SoundInitialized) InitializeSound();
 
+#ifdef USE_TCL
   sprintf(buf, "UIMakeSound \"%s\" \"%s\"", channel, id);
   Eval(buf);
+#endif
 }
 
 
@@ -117,6 +123,7 @@ void MakeSoundOn(SimView *view, char *channel, char *id)
   if (!UserSoundOn) return;
   if (!SoundInitialized) InitializeSound();
 
+#ifdef USE_TCL
   sprintf(buf, "UIMakeSoundOn %s \"%s\" \"%s\"",
 #if 1
 		  "xx"
@@ -125,6 +132,7 @@ void MakeSoundOn(SimView *view, char *channel, char *id)
 #endif
 	  , channel, id);
   Eval(buf);
+#endif
 }
 
 
@@ -151,24 +159,30 @@ void StopBulldozer(void)
 void SoundOff(void)
 {
   if (!SoundInitialized) InitializeSound();
+#ifdef USE_TCL
   Eval("UISoundOff");
+#endif
   Dozing = 0;
 }
 
 
 void DoStartSound(char *channel, char *id)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UIStartSound %s %s", channel, id);
   Eval(buf);
+#endif
 }
 
 
 void DoStopSound(char *id)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UIStopSound %s", id);
   Eval(buf);
+#endif
 }

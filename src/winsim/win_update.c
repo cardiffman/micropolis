@@ -73,12 +73,11 @@
 #include "sim.h"
 #include <stdio.h>
 
-short MustUpdateFunds;
 short MustUpdateOptions;
-uint8_t LastCityTime;
-uint8_t LastCityYear;
-uint8_t LastCityMonth;
-uint8_t LastFunds;
+int32_t LastCityTime;
+int32_t LastCityYear;
+int32_t LastCityMonth;
+int32_t LastFunds;
 int32_t LastR, LastC, LastI;
 
 char *dateStr[12] = {
@@ -136,36 +135,6 @@ void UpdateHeads(void)
   DoUpdateHeads();
 }
 
-void UpdateFunds(void)
-{
-  MustUpdateFunds = 1;
-//  Kick();
-}
-
-
-void ReallyUpdateFunds(void)
-{
-  char localStr[256], dollarStr[256], buf[256];
-
-  if (!MustUpdateFunds) return;
-
-  MustUpdateFunds = 0;
-
-  if (TotalFunds < 0) TotalFunds = 0;
-
-  if (TotalFunds != LastFunds) {
-    LastFunds = TotalFunds;
-    sprintf(localStr, "%d", TotalFunds);
-    makeDollarDecimalStr(localStr, dollarStr);
-
-    sprintf(localStr, "Funds: %s", dollarStr);
-
-    sprintf(buf, "UISetFunds {%s}", localStr);
-    Eval(buf);
-  }
-}
-
-
 void doTimeStuff(void)
 {
 //  if ((CityTime >> 2) != LastCityTime) {
@@ -192,8 +161,11 @@ void updateDate(void)
     SendMes(-40);
   }
 
+#ifdef HAVE_RESOURCES
   doMessage();
+#endif
 
+#ifdef USE_TCL
   if ((LastCityYear != y) ||
       (LastCityMonth != m)) {
 
@@ -207,6 +179,7 @@ void updateDate(void)
 	    str, m, y);
     Eval(buf);
   }
+#endif
 }
 
 
@@ -248,11 +221,13 @@ void drawValve(void)
 
 void SetDemand(double r, double c, double i)
 {
+#ifdef USE_TCL
   char buf[256];
 
   sprintf(buf, "UISetDemand %d %d %d",
 	  (int)(r / 100), (int)(c / 100), (int)(i / 100));
   Eval(buf);
+#endif
 }
 
 
@@ -279,6 +254,7 @@ void updateOptions(void)
 
 void UpdateOptionsMenu(int options)
 {
+#ifdef USE_TCL
   char buf[256];
   sprintf(buf, "UISetOptions %d %d %d %d %d %d %d %d",
 	  (options&1)?1:0, (options&2)?1:0,
@@ -286,6 +262,7 @@ void UpdateOptionsMenu(int options)
 	  (options&16)?1:0, (options&32)?1:0,
 	  (options&64)?1:0, (options&128)?1:0);
   Eval(buf);
+#endif
 }
 
 
