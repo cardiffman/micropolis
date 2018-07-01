@@ -291,11 +291,11 @@ enum {
 	VRAILROAD=	238,
 	LASTRAIL=	238,
 	ROADVPOWERH=	239, /* bogus? */
-	RESBASE	=	240,
-	FREEZ	=	244,
-	HOUSE	=	249,
-	LHTHR	=	249,
-	HHTHR	=	260,
+	RESBASE	=	240, // F0
+	FREEZ	=	244, // F4
+	HOUSE	=	249, // F9
+	LHTHR	=	249, // F9
+	HHTHR	=	260, // 104
 	RZB		=265,
 	HOSPITAL=	409,
 	CHURCH	=	418,
@@ -366,7 +366,7 @@ enum {
 	VBRDG2	=	950,
 	VBRDG3	=	951,
 
-	TILE_COUNT=	960
+	TILE_COUNT=	960 // 0x3C0 960-768=192
 };
 /* 
  * These describe the wand values, the object dragged around on the screen.
