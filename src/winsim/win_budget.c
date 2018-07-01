@@ -72,7 +72,7 @@
 #include <stdio.h>
 
 int32_t TotalFunds;
-uint8_t LastFunds;
+int32_t LastFunds;
 float roadPercent = 0.0;
 float policePercent = 0.0;
 float firePercent = 0.0;
