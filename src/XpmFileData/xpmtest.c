@@ -889,6 +889,60 @@ void foo(HDC hdc)
 	free(bits);
 }
 
+struct myBITMAPINFO {
+	BITMAPINFOHEADER bmiHeader;;
+	RGBQUAD bmiColors[256];
+};
+struct Dib {
+	struct myBITMAPINFO info;
+	char* bits;
+};
+struct Dib imageDib;
+void makeDibFromXpmData() {
+	if (imageDib.bits)
+		return;
+	int rowBytes = 4*((image.columns+3)/4);
+#if 0
+	char* bits = malloc(image.rows*rowBytes);
+	struct myBITMAPINFO {
+		BITMAPINFOHEADER bmiHeader;;
+		RGBQUAD bmiColors[256];
+	} info = {0};
+#endif
+	imageDib.bits = malloc(image.rows*rowBytes);
+	imageDib.info.bmiHeader.biBitCount = 8;
+	imageDib.info.bmiHeader.biHeight = -image.rows;
+	imageDib.info.bmiHeader.biWidth = image.columns;
+	imageDib.info.bmiHeader.biPlanes = 1;
+	imageDib.info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	imageDib.info.bmiHeader.biSizeImage = 0;
+	imageDib.info.bmiHeader.biCompression = BI_RGB;
+	imageDib.info.bmiHeader.biClrUsed = image.numColors;
+	imageDib.info.bmiHeader.biClrImportant = image.numColors;
+	//info.bmiColors = malloc(image.numColors);
+	for (int color = 0; color<image.numColors; color++) {
+		imageDib.info.bmiColors[color] = toQuad(image.colors[color].type, image.colors[color].argument);
+		//printf("color: %d %d %d", info.bmiColors[color].rgbRed,info.bmiColors[color].rgbGreen,info.bmiColors[color].rgbBlue);
+	}
+	switch (image.charsDepth)
+	{
+	case 1:
+	{
+		for (int y=0; y<image.rows; y++)
+			for (int x=0; x<image.columns; x++)
+				imageDib.bits[y*rowBytes+x] = pixelToIndex(&image.body[(y*image.columns+x)]);
+	}
+		break;
+	case 2:
+	{
+		for (int y=0; y<image.rows; y++)
+			for (int x=0; x<image.columns; x++)
+				imageDib.bits[y*rowBytes+x] = pixelToIndex(&image.body[2*(y*image.columns+x)]);
+	}
+		break;
+	}
+}
+
 LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	LPCREATESTRUCTW pCreate;
 	switch (msg) {
@@ -896,11 +950,17 @@ LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		printf("WM_CREATE\n");
 		pCreate = (LPCREATESTRUCT)lParam;
 		LPSTR name = pCreate->lpCreateParams;
+		char* title = malloc(1+strlen(" - xpmtest")+strlen(name));
+		strcpy(title, name);
+		strcat(title, " - xpmtest");
+		SetWindowTextA(hWnd, title);
+		free(title);
 		printf("ReadXpmFile: %d\n", ReadXpmFile(name, &image));
 		printf("image.rows %d\n", image.rows);
 		printf("image.columns %d\n", image.columns);
 		printf("image.charsDepth %d\n", image.charsDepth);
 		printf("image.numColors %d\n", image.numColors);
+		makeDibFromXpmData();
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -910,7 +970,9 @@ LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW+1));
+#if 0
 		foo(hdc);
+#endif
 #if 0
 		for (int y=0; y<image.rows; y++) {
 			for (int x=0; x<image.columns; x++) {
@@ -925,6 +987,9 @@ LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 #endif
+		StretchDIBits(hdc, 0, 0, image.columns, image.rows,
+						   0, 0, image.columns, image.rows,
+						   imageDib.bits, (BITMAPINFO*)&imageDib.info, DIB_RGB_COLORS, SRCCOPY);
 
 		EndPaint(hWnd, &ps);
 		return 0;
