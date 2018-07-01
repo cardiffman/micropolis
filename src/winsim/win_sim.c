@@ -4,7 +4,7 @@
  *  Created on: Jun 9, 2018
  *      Author: Mike
  */
-#include <windows.h>
+#include <windowsx.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -1428,6 +1428,8 @@ struct myBITMAPINFO {
 struct Dib {
 	struct myBITMAPINFO info;
 	char* bits;
+	void* pointer;
+	HBITMAP tilebitmap;
 };
 struct Dib tileDib;
 void makeDibFromXpmData() {
@@ -1473,47 +1475,60 @@ void makeDibFromXpmData() {
 	}
 		break;
 	}
+	HDC hdc = GetDC(NULL);
+	tileDib.tilebitmap = CreateDIBSection(hdc, (const BITMAPINFO*)&tileDib.info, DIB_RGB_COLORS, &tileDib.pointer, NULL, 0);
+	memcpy(tileDib.pointer, tileDib.bits, tiles.rows*rowBytes);
+	ReleaseDC(NULL, hdc);
 }
 
 void DrawTileAt(HDC hdc, int tile, RECT dest) {
 	makeDibFromXpmData();
 
-	int btile = tile;//&1023;
-	HBRUSH hbr = CreateSolidBrush(RGB(255*((btile&0xF800)>>11)/31,255*((btile&0x07E0)>>5)/63,255*(btile&0x1F)/31));
-	FillRect(hdc, &dest, hbr);
-	DeleteObject(hbr);
-
 	if ((tile & LOMASK) >= TILE_COUNT)
 		tile -= TILE_COUNT;
 
 	/* Blink lightning bolt in unpowered zone center */
-	int blink=1;
+	int blink=0;
 	if (blink && (tile & ZONEBIT) && !(tile & PWRBIT)) {
 		tile = LIGHTNINGBOLT;
 	} else {
 		tile &= LOMASK;
 	} // if
 
-	//if ((tile > 63) && (view->dynamic_filter != 0)
-	//		&& (dynamicFilter(col + x, row + y) == 0)) {
-	//	tile = 0;
-	//} // if
 #if 0
-	int ec = StretchDIBits(hdc, dest.left, dest.top, dest.right-dest.left, dest.bottom-dest.top,
-			           0, tile*16, 16, 16, tileDib.bits, (BITMAPINFO*)&tileDib.info, DIB_RGB_COLORS, SRCCOPY);
-	if (ec<16) {
-		printf("Stretchdibits returns %d", ec);
-		if (ec == GDI_ERROR)
-			printf("==GDI_ERROR");
-		printf("\n");
-	} else {
-		printf("Stretchdibits returns %d\n", ec);
-	}
+	int dynamicFilter(int col, int row);
+	if ((tile > 63) //&& (view->dynamic_filter != 0)
+			&& (dynamicFilter(dest.left/16, dest.top/16) == 0)) {
+		tile = 0;
+	} // if
 #endif
-	//free(bits);
+	HDC dc2 = CreateCompatibleDC(hdc);
+	HBITMAP xb = SelectBitmap(dc2, tileDib.tilebitmap);
+	StretchBlt(hdc, dest.left, dest.top, dest.right-dest.left, dest.bottom-dest.top,
+			dc2, 0, tile*16,16,16, SRCCOPY);
+	SelectBitmap(dc2,xb);
+	DeleteDC(dc2);
 }
 
-
+void DrawMagTileAt(HDC hdc, int mousex, int mousey, const RECT mousebox, int caption) {
+	char captionText[256];
+	//printf("D: %d,%d\n", mousex,mousey);
+	uint16_t tile = Map[mousex/16][mousey/16];
+#define B(x,y) ((x&y)?1:0)
+	sprintf(captionText, "%d,%d %04X=%d/%d/%d/%d/%d/%d/%03X", mousex/16,mousey/16, tile
+			,B(tile,32768),B(tile,16384),B(tile,8192),B(tile,4096),B(tile,2048),B(tile,1024)
+			, tile&1023);
+	ExtTextOutA(hdc,mousebox.left,mousebox.bottom/*+caption*/,ETO_OPAQUE,NULL,captionText,lstrlenA(captionText),NULL);
+	DrawTileAt(hdc, tile, mousebox);
+}
+static int mousex = 0;
+static int mousey = 0;
+RECT timerArea = { 300, 0, 396, 48 };
+static int timerCount = 0;
+void CALLBACK timerFunc(HWND hwnd, UINT msg, UINT_PTR event, DWORD time) {
+	InvalidateRect(hwnd, &timerArea, FALSE);
+	timerCount++;
+}
 LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
 	case WM_DESTROY:
@@ -1522,22 +1537,37 @@ LRESULT simCityWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
+		RECT mousebox = { 0, 0, 48, 48 };
 		HDC hdc = BeginPaint(hWnd, &ps);
-		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW+1));
+#if 1
 		for (int y=0; y<120; y++) {
-#define FACTOR 20
-			RECT cell; cell.top = y*FACTOR; cell.bottom=y*FACTOR+FACTOR;
-			for (int x=0; x<120; x++) {
-				cell.left = x*FACTOR; cell.right = cell.left+FACTOR;
-				//HBRUSH hbr = CreateSolidBrush(RGB(255*((Map[x][y]&0xF800)>>11)/31,255*((Map[x][y]&0x07E0)>>5)/63,255*(Map[x][y]&0x1F)/31));
-				//FillRect(hdc, &cell, hbr);
-				//DeleteObject(hbr);
-				DrawTileAt(hdc, Map[x][y]&1023,cell);
+#define FACTOR 16
+			if (y*FACTOR >= ps.rcPaint.top && y*FACTOR <= ps.rcPaint.bottom) {
+				RECT cell; cell.top = y*FACTOR; cell.bottom=y*FACTOR+FACTOR;
+				for (int x=0; x<120; x++) {
+					if (x*FACTOR >= ps.rcPaint.left && x*FACTOR <= ps.rcPaint.right) {
+						cell.left = x*FACTOR; cell.right = cell.left+FACTOR;
+						DrawTileAt(hdc, /*x+120*y*/Map[x][y],cell);
+					}
+				}
 			}
 		}
+#endif
+		DrawMagTileAt(hdc, mousex,mousey,mousebox,16);
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
+	case WM_MOUSEMOVE: {
+		mousex = GET_X_LPARAM(lParam);
+		mousey = GET_Y_LPARAM(lParam);
+		RECT mousebox = { 0, 0, 48, 48 };
+		RECT captionbox = {0, 48, 2048, 64};
+		InvalidateRect(hWnd, &mousebox, FALSE);
+		InvalidateRect(hWnd, &captionbox, FALSE);
+		//InvalidateRect(hWnd, NULL, FALSE);
+	}
+		break;
+
 	}
 	return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
@@ -1617,6 +1647,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hModule, LPSTR cmdline, int cm
     LoadScenario(1);
     fflush(stdout);
 
+    SetTimer(hwnd, 0, 100, timerFunc);
 	MSG msg = {};
 	printf("Looping\n");
 #if 0
@@ -1627,7 +1658,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hModule, LPSTR cmdline, int cm
 #else
 	while (1) {
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-			printf("Peek done\n");
+			//printf("Peek done\n");
 			if (msg.message == WM_QUIT) {
 				break;
 			}
