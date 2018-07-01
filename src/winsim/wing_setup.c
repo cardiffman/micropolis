@@ -316,159 +316,159 @@ void GetPixmaps(XDisplay *xd)
 
 void GetViewTiles(SimView *view)
 {
-  char name[256];
+	char name[256];
 #ifdef USE_X11
-  XpmAttributes attributes;
+	XpmAttributes attributes;
 
-  attributes.visual = Tk_DefaultVisual(view->x->screen);
-  attributes.colormap = Tk_DefaultColormap(view->x->screen);
-  attributes.depth = Tk_DefaultDepth(view->x->screen);
-  attributes.valuemask = XpmVisual | XpmColormap | XpmDepth;
+	attributes.visual = Tk_DefaultVisual(view->x->screen);
+	attributes.colormap = Tk_DefaultColormap(view->x->screen);
+	attributes.depth = Tk_DefaultDepth(view->x->screen);
+	attributes.valuemask = XpmVisual | XpmColormap | XpmDepth;
 
-  if (view->class == Editor_Class) {
+	if (view->class == Editor_Class) {
 
-    sprintf(name, "%s/images/%s", HomeDir,
-	    view->x->color ? "tiles.xpm" : "tilesbw.xpm");
+		sprintf(name, "%s/images/%s", HomeDir,
+				view->x->color ? "tiles.xpm" : "tilesbw.xpm");
 
-    switch (view->type) {
+		switch (view->type) {
 
-    case X_Mem_View:
-      if (view->x->big_tile_image == NULL) {
-	if (XpmReadFileToImage(view->x->dpy, name,
-			       &view->x->big_tile_image, NULL,
-			       &attributes) < 0) {
-	  fprintf(stderr,
-		  "Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
-		  name);
-	  sim_exit(1); // Just sets tkMustExit and ExitReturn
-	  return;
-	}
-      }
-      view->bigtiles = (unsigned char *)view->x->big_tile_image->data;
-      break;
+			case X_Mem_View:
+			if (view->x->big_tile_image == NULL) {
+				if (XpmReadFileToImage(view->x->dpy, name,
+								&view->x->big_tile_image, NULL,
+								&attributes) < 0) {
+					fprintf(stderr,
+							"Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
+							name);
+					sim_exit(1); // Just sets tkMustExit and ExitReturn
+					return;
+				}
+			}
+			view->bigtiles = (unsigned char *)view->x->big_tile_image->data;
+			break;
 
-    case X_Wire_View:
-      if (view->x->big_tile_pixmap == None) {
-	if (XpmReadFileToPixmap(view->x->dpy,
-				RootWindowOfScreen(view->x->screen),
-				name,
-				&view->x->big_tile_pixmap, NULL,
-				&attributes) < 0) {
-	  fprintf(stderr,
-		  "Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
-		  name);
-	  sim_exit(1); // Just sets tkMustExit and ExitReturn
-	  return;
-	}
-      }
-      break;
+			case X_Wire_View:
+			if (view->x->big_tile_pixmap == None) {
+				if (XpmReadFileToPixmap(view->x->dpy,
+								RootWindowOfScreen(view->x->screen),
+								name,
+								&view->x->big_tile_pixmap, NULL,
+								&attributes) < 0) {
+					fprintf(stderr,
+							"Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
+							name);
+					sim_exit(1); // Just sets tkMustExit and ExitReturn
+					return;
+				}
+			}
+			break;
 
-    }
+		}
 
   } else if (view->class == Map_Class) {
 
-    if (view->x->small_tile_image == NULL) {
-      if (view->x->color) {
+		if (view->x->small_tile_image == NULL) {
+			if (view->x->color) {
 
-	sprintf(name, "%s/images/%s", HomeDir, "tilessm.xpm");
-	if (XpmReadFileToImage(view->x->dpy, name,
-			       &view->x->small_tile_image, NULL,
-			       &attributes) < 0) {
-	  fprintf(stderr,
-		  "Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
-		  name);
-	  sim_exit(1); // Just sets tkMustExit and ExitReturn
-	  return;
+				sprintf(name, "%s/images/%s", HomeDir, "tilessm.xpm");
+				if (XpmReadFileToImage(view->x->dpy, name,
+								&view->x->small_tile_image, NULL,
+								&attributes) < 0) {
+					fprintf(stderr,
+							"Uh oh, Micropolis couldn't read the pixmap file \"%s\".\n",
+							name);
+					sim_exit(1); // Just sets tkMustExit and ExitReturn
+					return;
+				}
+
+			} else {
+
+				view->x->small_tile_image =
+				XCreateImage(view->x->dpy, view->x->visual, 8,
+						ZPixmap,
+						0, (char *)MickGetHexa(SIM_GSMTILE),
+						4, 3 * TILE_COUNT, 8, 4);
+
+			}
+		}
+
+		{	int x, y, b, tile;
+			unsigned char *from, *to;
+			int pixelBytes = view->pixel_bytes;
+			int rowBytes = view->x->small_tile_image->bytes_per_line;
+
+			if (pixelBytes == 0) {
+				/* handle the case of monochrome display (8 bit map) */
+				pixelBytes = 1;
+			}
+
+			/* from is 4 pixels wide per 3 pixel wide tile */
+			from = (unsigned char *)view->x->small_tile_image->data;
+			to = (unsigned char *)ckalloc(4 * 4 * TILE_COUNT * pixelBytes);
+			view->smalltiles = to;
+
+			switch (pixelBytes) {
+
+				case 1:
+				for (tile = 0; tile < TILE_COUNT; tile++) {
+					for (y = 0; y < 3; y++) {
+						for (x = 0; x < 4; x++) {
+							*to++ = *from++;
+						}
+					}
+					for (x = 0; x < 4; x++) {
+						*to++ = 0;
+					}
+				}
+				break;
+
+				case 2:
+				for (tile = 0; tile < TILE_COUNT; tile++) {
+					for (y = 0; y < 3; y++) {
+						for (x = 0; x < 4; x++) {
+							*to++ = *from++;
+							*to++ = *from++;
+						}
+					}
+					for (x = 0; x < 4; x++) {
+						*to++ = 0;
+						*to++ = 0;
+					}
+				}
+				break;
+
+				case 3:
+				case 4:
+				for (tile = 0; tile < TILE_COUNT; tile++) {
+					for (y = 0; y < 3; y++) {
+						for (x = 0; x < 4; x++) {
+							*to++ = *from++;
+							*to++ = *from++;
+							*to++ = *from++;
+							if (pixelBytes == 4) {
+								*to++ = *from++;
+							}
+						}
+					}
+					for (x = 0; x < 4; x++) {
+						*to++ = 0;
+						*to++ = 0;
+						*to++ = 0;
+						if (pixelBytes == 4) {
+							*to++ = 0;
+						}
+					}
+				}
+				break;
+
+				default:
+				assert(0); /* Undefined depth */
+				break;
+
+			}
+
+		}
 	}
-
-      } else {
-
-	view->x->small_tile_image =
-	  XCreateImage(view->x->dpy, view->x->visual, 8,
-		       ZPixmap,
-		       0, (char *)MickGetHexa(SIM_GSMTILE),
-		       4, 3 * TILE_COUNT, 8, 4);
-
-      }
-    }
-
-    { int x, y, b, tile;
-      unsigned char *from, *to;
-      int pixelBytes = view->pixel_bytes;
-      int rowBytes = view->x->small_tile_image->bytes_per_line;
-
-      if (pixelBytes == 0) {
-	/* handle the case of monochrome display (8 bit map) */
-	pixelBytes = 1;
-      }
-
-      /* from is 4 pixels wide per 3 pixel wide tile */
-      from = (unsigned char *)view->x->small_tile_image->data;
-      to = (unsigned char *)ckalloc(4 * 4 * TILE_COUNT * pixelBytes);
-      view->smalltiles = to;
-
-      switch (pixelBytes) {
-
-      case 1:
-	for (tile = 0; tile < TILE_COUNT; tile++) {
-	  for (y = 0; y < 3; y++) {
-	    for (x = 0; x < 4; x++) {
-	      *to++ = *from++;
-	    }
-	  }
-	  for (x = 0; x < 4; x++) {
-	    *to++ = 0;
-	  }
-	}
-	break;
-
-      case 2:
-	for (tile = 0; tile < TILE_COUNT; tile++) {
-	  for (y = 0; y < 3; y++) {
-	    for (x = 0; x < 4; x++) {
-	      *to++ = *from++;
-	      *to++ = *from++;
-	    }
-	  }
-	  for (x = 0; x < 4; x++) {
-	    *to++ = 0;
-	    *to++ = 0;
-	  }
-	}
-	break;
-
-      case 3:
-      case 4:
-	for (tile = 0; tile < TILE_COUNT; tile++) {
-	  for (y = 0; y < 3; y++) {
-	    for (x = 0; x < 4; x++) {
-	      *to++ = *from++;
-	      *to++ = *from++;
-	      *to++ = *from++;
-	      if (pixelBytes == 4) {
-		*to++ = *from++;
-	      }
-	    }
-	  }
-	  for (x = 0; x < 4; x++) {
-	    *to++ = 0;
-	    *to++ = 0;
-	    *to++ = 0;
-	    if (pixelBytes == 4) {
-	      *to++ = 0;
-	    }
-	  }
-	}
-	break;
-
-      default:
-	assert(0); /* Undefined depth */
-	break;
-
-      }
-
-    }
-  }
 #endif
 }
 
