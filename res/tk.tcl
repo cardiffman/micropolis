@@ -16,8 +16,8 @@
 
 # Insist on running with a compatible version of Tcl.
 
-if "[info tclversion] != {6.4}" {
-    error "wrong version of Tcl loaded ([info tclversion]): need 6.4"
+if "[info tclversion] != {8.6}" {
+    error "wrong version of Tcl loaded ([info tclversion]): need 8.6"
 }
 
 # Initialize the auto-load path to include Tk's directory as well as

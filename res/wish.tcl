@@ -17,7 +17,8 @@
 # express or implied warranty.
 #
 
-source [info library]/init.tcl
+#source [info library]/init.tcl
+source ../tcl/library/init.tcl
 source $tk_library/tk.tcl
 
 if [info exists geometry] {
