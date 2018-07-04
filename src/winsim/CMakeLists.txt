@@ -49,5 +49,5 @@ add_executable(winsim WIN32
 #target_link_libraries(winsim gdi32 user32 ${TCL_LIBRARY})
 target_link_libraries(winsim XpmFileData gdi32 user32)
 set_target_properties(winsim PROPERTIES C_EXTENSIONS OFF)
-add_definitions(-DIS_LINUX -Werror -DUNICODE -D_UNICODE -mwindows)
+add_definitions(-DIS_LINUX -DIS_INTEL -Werror -DUNICODE -D_UNICODE -mwindows)
 include_directories(headers ../XpmFileData ${TCL_INCLUDE_PATH})
